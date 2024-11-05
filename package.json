@@ -1,6 +1,13 @@
 {
+  "name": "exam-portal-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/techenthusiastic/exam-portal-backend.git",
+  "author": "Sachin Kumar <sinha1abc@gmail.com>",
+  "license": "MIT",
   "scripts": {
-    "start": "nodemon examServer.js"
+    "start": "node examServer.js",
+    "start:nodemon": "nodemon examServer.js"
   },
   "env": {
     "NODE_ENV": "production"
