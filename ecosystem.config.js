@@ -8,7 +8,16 @@ module.exports = {
       exec_mode: "cluster",
       instance_var: "INSTANCE_ID",
       increment_var: "PORT",
-      env: { PORT: 3000, NODE_ENV: "development" },
+      env: {
+        // Environment variables for default environment
+        NODE_ENV: "development",
+        PORT: 3000,
+      },
+      env_production: {
+        // Environment variables for production
+        NODE_ENV: "production",
+        PORT: 8080,
+      },
     },
   ],
 };
