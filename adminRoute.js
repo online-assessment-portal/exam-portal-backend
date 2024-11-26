@@ -32,7 +32,7 @@ async function loadTest(obj, uname) {
       "Welcome to Examination Portal.It seems this is going to be your First Test, in case you need help don't hesitate to contact.";
   return obj;
 }
-function processSignIn(req, res, getAdmin) {
+function processAdminSignIn(req, res, getAdmin) {
   return new Promise((resolve) => {
     clearAllCookies(req, res);
     req.session.regenerate(function (error) {
@@ -111,7 +111,7 @@ router.post("/authAdmin/", async (req, res, next) => {
           mailAcc: getAdmin.mailAcc,
         };
         //
-        const promise1 = processSignIn(req, res, getAdmin);
+        const promise1 = processAdminSignIn(req, res, getAdmin);
         const promise2 = loadTest(obj, getAdmin.uname);
         Promise.all([promise1, promise2]).then(() => {
           res.send(obj);

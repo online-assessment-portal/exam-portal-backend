@@ -50,14 +50,14 @@ const oAuth2Client = new google.auth.OAuth2(
   REDIRECT_URI
 );
 // const SCOPES = [
-// 	// "https://www.googleapis.com/auth/gmail.send",
-// 	"https://mail.google.com",
+//   // "https://www.googleapis.com/auth/gmail.send",
+//   "https://mail.google.com",
 // ];
 // const authUrl = oAuth2Client.generateAuthUrl({
-// 	access_type: "offline",
-// 	scope: SCOPES,
+//   access_type: "offline",
+//   scope: SCOPES,
 // });
-// console.log(authUrl);
+// console.log({ authUrl });
 invRouter.get("/setupMailer/", async (req, res, next) => {
   try {
     const code = req.query.code;
@@ -462,7 +462,7 @@ invRouter.get("/myAuth", async (req, res) => {
                   );
                   res.redirect(link);
                 } else {
-                  directSignUp(req, param.email, "", "Invitation SignUp")
+                  directSignUp(req, param.email, "", "", "Invitation SignUp")
                     .then(() => {
                       processSignIn(req, res, param.email, "", "", "", 1);
                       res.redirect(`/test?passcode=${param.passcode}&ds=true`);
