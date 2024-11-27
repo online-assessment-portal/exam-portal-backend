@@ -35,12 +35,9 @@ function prepareAndSend(to) {
       // const info = await awsTransporter.sendMail(mailObject);
       const info = await (() => {
         return new Promise((res) => {
-          setTimeout(
-            () => {
-              res({ accepted: [to] });
-            },
-            Math.floor(Math.random() * 10000 + 3000),
-          );
+          setTimeout(() => {
+            res({ accepted: [to] });
+          }, Math.floor(Math.random() * 10000 + 3000));
         });
       })();
       if (info.accepted[0] === to) {
@@ -70,7 +67,7 @@ function prepareAndSend(to) {
       console.log(err);
       storeErr(
         `AWS Mail Error - ${err.code} - Sending to ${mailObject.to}`,
-        err,
+        err
       );
       reject();
     }
@@ -103,8 +100,8 @@ async function regulateQueue(list) {
       })
       .catch(() =>
         console.log(
-          "Promise.all failure - not all mails were success at regulateQueue",
-        ),
+          "Promise.all failure - not all mails were success at regulateQueue"
+        )
       );
 }
 //
@@ -114,9 +111,9 @@ let list = [],
   body1 = "",
   body2 = "",
   mailObject = {
-    from: '"CEO, Shred Test" <ceo@shredtest.cf>',
+    from: '"CEO, Shred Test" <ceo@shredtest.coderadiant.com>',
     subject: "Free Online Examination Portal",
-    replyTo: '"Customer Care" <contact@shredtest.cf>',
+    replyTo: '"Support" <support@shredtest.coderadiant.com>',
     // to: "", - set at prepare mail
     // html: "", - set at prepare mail
     text: "Your browser or app does not support this mail. Open it in updated browser / App",

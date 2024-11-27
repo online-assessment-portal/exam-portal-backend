@@ -71,8 +71,8 @@ router.post("/signIn/", async (req, res, next) => {
       return next(
         createErr.TooManyRequests(
           "Crossed maximum allowed attempts.<br>Retry-after " +
-            (show > 1 ? show + " mins" : retrySecs + " secs"),
-        ),
+            (show > 1 ? show + " mins" : retrySecs + " secs")
+        )
       );
     }
     //
@@ -85,8 +85,8 @@ router.post("/signIn/", async (req, res, next) => {
         storeErr(req, `Password Verification Failed: ${findRes.email}`);
         return next(
           createErr.InternalServerError(
-            "Something went wrong: Error encountered.<br>Sorry for the inconvienience caused.",
-          ),
+            "Something went wrong: Error encountered.<br>Sorry for the inconvienience caused."
+          )
         );
       } else if (status === true) {
         // Delete Failure Couting for unameIP only
@@ -102,7 +102,7 @@ router.post("/signIn/", async (req, res, next) => {
           findRes.email,
           findRes.uname,
           findRes.name,
-          findRes.img,
+          findRes.img
         ).then((userInfo) => {
           const obj = {
             status: 200,
@@ -121,8 +121,8 @@ router.post("/signIn/", async (req, res, next) => {
           createErr.Unauthorized(
             `Invalid Username/Password.<br>${
               failsIP ? failsIP.remainingPoints - 1 : 4
-            } attempts left`,
-          ),
+            } attempts left`
+          )
         );
       }
     } else {
@@ -132,8 +132,8 @@ router.post("/signIn/", async (req, res, next) => {
         createErr.Unauthorized(
           `Invalid Username/Password.<br>${
             failsIP ? failsIP.remainingPoints - 1 : 4
-          } attempts left`,
-        ),
+          } attempts left`
+        )
       );
     }
   } catch (error) {
@@ -166,8 +166,8 @@ router.post("/otp_auth/", async (req, res, next) => {
       return next(
         createErr.TooManyRequests(
           "Crossed maximum allowed attempts.<br>Retry-after " +
-            (show > 1 ? show + " mins" : retrySecs + " secs"),
-        ),
+            (show > 1 ? show + " mins" : retrySecs + " secs")
+        )
       );
     }
     //
@@ -175,8 +175,8 @@ router.post("/otp_auth/", async (req, res, next) => {
       if (!req.session.otp)
         return next(
           createErr.BadRequest(
-            "Duplicate Request / Request Expired.<br>Refresh this Page and retry.",
-          ),
+            "Duplicate Request / Request Expired.<br>Refresh this Page and retry."
+          )
         );
       // update number of verification attempts
       await otpVerifyLimiter.consume(myIP);
@@ -201,7 +201,7 @@ router.post("/otp_auth/", async (req, res, next) => {
           req,
           `OTP Mismatch: was ${req.session.otp} entered ${result.otp} for ${
             result.isReset ? "Reset" : "SignUp"
-          }`,
+          }`
         );
         return next(createErr.Conflict("OTP Mismatch - Verification Failed."));
       }
@@ -217,16 +217,16 @@ router.post("/otp_auth/", async (req, res, next) => {
         if (!result.isReset)
           return next(
             createErr.Conflict(
-              "Account already exists for this e-Mail.<br>Please SignIn.",
-            ),
+              "Account already exists for this e-Mail.<br>Please SignIn."
+            )
           );
       } else if (result.isReset) {
         // Account doesn't exists
         // in case of reset error out saying no account exists
         return next(
           createErr.Conflict(
-            "No Account exists for this e-Mail/username.<br>Please Create an Account.",
-          ),
+            "No Account exists for this e-Mail/username.<br>Please Create an Account."
+          )
         );
       }
       const otp = Math.floor(100000 + Math.random() * 900000);
@@ -256,19 +256,19 @@ router.post("/register_Acc/", async (req, res, next) => {
     storeErr(req, `Duplicate Request ${body.isReset ? "Reset" : "SignUp"}`);
     return next(
       createErr.BadRequest(
-        "Duplicate Request / Request Expired.<br>Refresh this Page and retry.",
-      ),
+        "Duplicate Request / Request Expired.<br>Refresh this Page and retry."
+      )
     );
   }
   if (!req.session.otpVerify) {
     storeErr(
       req,
-      `Trying to ${body.isReset ? "Reset" : "SignUp"} without Verification`,
+      `Trying to ${body.isReset ? "Reset" : "SignUp"} without Verification`
     );
     return next(
       createErr.BadRequest(
-        "Duplicate Request / Request Expired.<br>Refresh this Page and retry.",
-      ),
+        "Duplicate Request / Request Expired.<br>Refresh this Page and retry."
+      )
     );
   }
   try {
@@ -279,7 +279,7 @@ router.post("/register_Acc/", async (req, res, next) => {
       if (result.isReset) {
         const response = await credentialsMdl.findOneAndUpdate(
           { email: email },
-          { password: hashedPswd },
+          { password: hashedPswd }
         );
         if (response) {
           if (req.session.otpVerify) delete req.session.otpVerify;
@@ -293,7 +293,7 @@ router.post("/register_Acc/", async (req, res, next) => {
             response.email,
             response.uname,
             response.name,
-            response.img,
+            response.img
           ).then((userInfo) => {
             obj.userInfo = userInfo;
             res.send(obj);
@@ -301,8 +301,8 @@ router.post("/register_Acc/", async (req, res, next) => {
         } else
           return next(
             createErr.InternalServerError(
-              "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.",
-            ),
+              "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later."
+            )
           );
       } else {
         const accData = {
@@ -320,13 +320,13 @@ router.post("/register_Acc/", async (req, res, next) => {
             (userInfo) => {
               obj.userInfo = userInfo;
               res.send(obj);
-            },
+            }
           );
         } else
           return next(
             createErr.InternalServerError(
-              "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.",
-            ),
+              "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later."
+            )
           );
       }
     } else {
@@ -334,12 +334,12 @@ router.post("/register_Acc/", async (req, res, next) => {
         req,
         `${
           result.isReset ? "Reset" : "SignUp"
-        } Error: Hash Password generate Failed.`,
+        } Error: Hash Password generate Failed.`
       );
       return next(
         createErr.ServiceUnavailable(
-          "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.",
-        ),
+          "This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later."
+        )
       );
     }
   } catch (error) {
@@ -353,7 +353,7 @@ router.post("/updateProfile/", async (req, res, next) => {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
-        createErr.Unauthorized("User not logged in.<br>Please Login."),
+        createErr.Unauthorized("User not logged in.<br>Please Login.")
       );
     }
     const result = await profileV.validateAsync(req.body);
@@ -378,8 +378,8 @@ router.post("/updateProfile/", async (req, res, next) => {
     } else
       return next(
         createErr.ServiceUnavailable(
-          "Something went wrong...<br>Retry after sometime.",
-        ),
+          "Something went wrong...<br>Retry after sometime."
+        )
       );
   } catch (error) {
     if (
@@ -391,8 +391,8 @@ router.post("/updateProfile/", async (req, res, next) => {
     )
       return next(
         createErr.UnavailableForLegalReasons(
-          "this username is already occupied by someone else.<br>Look for something more unique.",
-        ),
+          "this username is already occupied by someone else.<br>Look for something more unique."
+        )
       );
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);

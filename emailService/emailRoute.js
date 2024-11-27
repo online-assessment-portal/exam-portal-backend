@@ -51,12 +51,12 @@ mailRouter.get("/:action/:email/:mailUID", async (req, res) => {
     } catch (error) {
       storeErr(
         req,
-        `Invalid email unsubscribe URL ${error} - ${req.originalUrl}`,
+        `Invalid email unsubscribe URL ${error} - ${req.originalUrl}`
       );
       return res
         .status(401)
         .send(
-          '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
+          '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
         );
     }
     sentMailMdl
@@ -72,7 +72,7 @@ mailRouter.get("/:action/:email/:mailUID", async (req, res) => {
               storeErr(
                 req,
                 "email-unsubscribe no sent mail record found for " +
-                  req.originalUrl,
+                  req.originalUrl
               );
             return res.status(500).send(msg);
           } else {
@@ -83,12 +83,12 @@ mailRouter.get("/:action/:email/:mailUID", async (req, res) => {
                 if (err || !record) {
                   storeErr(
                     "",
-                    `mail un-sub Store in DB Failed: ${JSON.stringify(obj)}`,
+                    `mail un-sub Store in DB Failed: ${JSON.stringify(obj)}`
                   );
                   return res.status(500).send(msg);
                 } else
                   res.send(
-                    `<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br> <br><a href="https://shredtest.cf/email/resub/${param.email}/${param.mailUID}">Click Here</a> to re-subscribe<br><br>else Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on our HomePage.<br> </h1> </center>`,
+                    `<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br> <br><a href="https://shredtest.coderadiant.com/email/resub/${param.email}/${param.mailUID}">Click Here</a> to re-subscribe<br><br>else Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on our HomePage.<br> </h1> </center>`
                   );
               });
             else if (param.action === "resub")
@@ -96,23 +96,23 @@ mailRouter.get("/:action/:email/:mailUID", async (req, res) => {
                 if (err || !record) {
                   storeErr(
                     "",
-                    `mail re-sub Store in DB Failed: ${JSON.stringify(obj)}`,
+                    `mail re-sub Store in DB Failed: ${JSON.stringify(obj)}`
                   );
                   return res.status(500).send(msg);
                 } else
                   res.send(
-                    `<center><h1 style="color: green;font-family: monospace;">Re-subscription Successful.<br> Thanks for your kind gesture</h1> </center>`,
+                    `<center><h1 style="color: green;font-family: monospace;">Re-subscription Successful.<br> Thanks for your kind gesture</h1> </center>`
                   );
               });
             else res.status(500).send(msg);
           }
-        },
+        }
       )
       .lean();
   } catch (error) {
     storeErr(req, error);
     res.send(
-      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
+      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
     );
   }
 });

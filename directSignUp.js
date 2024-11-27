@@ -18,7 +18,7 @@ function genRandomPass(email) {
   return pass;
 }
 //
-function directSignUp(req, email, googleId, reqType) {
+function directSignUp(req, email, name, googleId, reqType) {
   const randomPass = genRandomPass(email);
   return new Promise((res, rej) => {
     bcrypt.hash(randomPass, saltRounds).then((hashedPswd) => {
@@ -26,6 +26,7 @@ function directSignUp(req, email, googleId, reqType) {
         const accData = {
           email: email,
           uname: email,
+          name,
           password: hashedPswd,
           gId: googleId,
         };

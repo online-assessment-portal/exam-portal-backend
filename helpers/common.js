@@ -63,7 +63,7 @@ async function processSignIn(
   uname,
   name,
   img,
-  isWhat = false,
+  isWhat = false
 ) {
   return new Promise((resolve) => {
     // isWhat false Credentials SignIn , 1 - Invitation SignIn , 2 - GoogleSignIn
