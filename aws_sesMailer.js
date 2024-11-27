@@ -1,5 +1,5 @@
-const { storeErr } = require("./helpers/common");
-const nodemailer = require("nodemailer");
+const { storeErr } = require('./helpers/common');
+const nodemailer = require('nodemailer');
 const awsTransporter = nodemailer.createTransport({
   host: process.env.AWS_SES_HOST,
   port: 465,
@@ -22,8 +22,8 @@ async function awsMailer(mailObject) {
       err
     );
     // 2 - Server Error/No Internet Server, 3 - Invalid Recepient, 4 - Auth Failed
-    if (err.code === "EENVELOPE") return 3;
-    else if (err.code === "EAUTH") return 4;
+    if (err.code === 'EENVELOPE') return 3;
+    else if (err.code === 'EAUTH') return 4;
     else return 2;
   }
 }

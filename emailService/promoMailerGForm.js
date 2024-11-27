@@ -1,10 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
+const { v4: uuidv4 } = require('uuid');
 //
-const { storeErr } = require("../helpers/common");
+const { storeErr } = require('../helpers/common');
 //
-const { emailV } = require("../helpers/joiSchema");
-const { sentMailMdl } = require("../helpers/schemaColl");
-const { awsTransporter } = require("../aws_sesMailer");
+const { emailV } = require('../helpers/joiSchema');
+const { sentMailMdl } = require('../helpers/schemaColl');
+const { awsTransporter } = require('../aws_sesMailer');
 //
 function delay2Sec() {
   return new Promise((res) => {
@@ -40,7 +40,7 @@ function prepareAndSend(to) {
         sentMailMdl.create(store, (err, res) => {
           if (err || !res) {
             storeErr(
-              "",
+              '',
               `Sent Email store in DB Failed: ${JSON.stringify(store)}`
             );
             reject();
@@ -77,56 +77,56 @@ async function regulateQueue(list) {
       })
       .catch(() =>
         storeErr(
-          "",
-          "Promise.all failure - not all mails were success at regulateQueue"
+          '',
+          'Promise.all failure - not all mails were success at regulateQueue'
         )
       );
 }
 //
-const fs = require("fs").promises;
+const fs = require('fs').promises;
 //
 let list = [],
-  htmlBody = "",
+  htmlBody = '',
   mailObject = {
-    from: "", // - prepared at main function
-    subject: "WordPress Developer Required : Small Task",
+    from: '', // - prepared at main function
+    subject: 'WordPress Developer Required : Small Task',
     replyTo: '"Support" <support@shredtest.coderadiant.com>',
-    to: "", // - set at prepare mail
-    html: "", // - set at prepare mail
-    text: "Your browser or app does not support this mail. Open it in updated browser / App",
+    to: '', // - set at prepare mail
+    html: '', // - set at prepare mail
+    text: 'Your browser or app does not support this mail. Open it in updated browser / App',
     list: {
       unsubscribe: {
-        url: "", // - set at prepare mail
-        comment: "unsublinking",
+        url: '', // - set at prepare mail
+        comment: 'unsublinking',
       },
     },
   };
 async function main(param) {
   list = [];
-  htmlBody = "";
+  htmlBody = '';
   // Read html body from file
   try {
     await Promise.all([
-      fs.readFile("./emailService/mailList.txt", "utf8"),
-      fs.readFile("./emailService/htmlBody.txt", "utf8"),
+      fs.readFile('./emailService/mailList.txt', 'utf8'),
+      fs.readFile('./emailService/htmlBody.txt', 'utf8'),
     ])
       .then((val) => {
-        list = val[0].split(",");
+        list = val[0].split(',');
         htmlBody = val[1];
       })
       .catch(() => {
-        throw new Error("Error Reading File");
+        throw new Error('Error Reading File');
       });
   } catch (error) {
     return error.message;
   }
-  if (!htmlBody) return "Empty Body";
-  else if (!list.length) return "Mailing List is Empty";
+  if (!htmlBody) return 'Empty Body';
+  else if (!list.length) return 'Mailing List is Empty';
   else {
     mailObject.from = `"${param.frm}" <${param.frmMail}@shredtest.coderadiant.com>`;
     regulateQueue(list);
     // console.log(list.length);
-    return "Process Initiated";
+    return 'Process Initiated';
   }
 }
 module.exports = main;

@@ -1,13 +1,13 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
 const errStoreSch = new Schema({
-  email: { type: String, default: "" },
-  error: { type: String, default: "" },
-  ip: { type: String, default: "" },
-  userAgent: { type: String, default: "" },
+  email: { type: String, default: '' },
+  error: { type: String, default: '' },
+  ip: { type: String, default: '' },
+  userAgent: { type: String, default: '' },
   time: { type: Date, default: Date.now() },
 });
-const errMdl = model("error", errStoreSch);
+const errMdl = model('error', errStoreSch);
 //
 const adminCredSch = new Schema({
   uname: { type: String, unique: true, required: true },
@@ -16,25 +16,25 @@ const adminCredSch = new Schema({
   org: String,
   img: String,
   imgUpKey: String,
-  mailAcc: { type: String, default: "{}" },
+  mailAcc: { type: String, default: '{}' },
   registered_On: { type: Date, default: Date.now },
   updated_On: Date,
 });
-const adminCredMdl = model("admin_cred", adminCredSch);
+const adminCredMdl = model('admin_cred', adminCredSch);
 //
 const credentialSch = new Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
-  uname: { type: String, unique: true, default: "" },
-  name: { type: String, default: "" },
-  img: { type: String, default: "https://i.ibb.co/QpJYCQ7/UL8Ijh0w.png" },
-  delImg: { type: String, default: "" },
+  uname: { type: String, unique: true, default: '' },
+  name: { type: String, default: '' },
+  img: { type: String, default: 'https://i.ibb.co/QpJYCQ7/UL8Ijh0w.png' },
+  delImg: { type: String, default: '' },
   createdOn: { type: Date, default: Date.now() },
   block: { type: Number, default: 0 },
-  result: { type: String, default: "{}" },
-  gId: { type: String, default: "" },
+  result: { type: String, default: '{}' },
+  gId: { type: String, default: '' },
 });
-const credentialsMdl = model("credentials", credentialSch);
+const credentialsMdl = model('credentials', credentialSch);
 //
 const qBankSch = new Schema({
   passcode: {
@@ -53,7 +53,7 @@ const qBankSch = new Schema({
   status: { type: Number, required: true, default: 0 },
   admin: { type: String, required: true },
 });
-const qBankMdl = model("testinfo", qBankSch);
+const qBankMdl = model('testinfo', qBankSch);
 //
 const invSch = new Schema({
   email: { type: String, required: true },
@@ -61,18 +61,18 @@ const invSch = new Schema({
   token: { type: String, required: true },
   server: { type: String, required: true },
 });
-const invitationMdl = model("invitations", invSch);
+const invitationMdl = model('invitations', invSch);
 // Invitation un-Subscribe
 const invUnSub = new Schema({
   passcode: { type: String, required: true },
   email: { type: String, required: true },
   sender: { type: String, required: true },
   type: { type: String, required: true },
-  ip: { type: String, default: "" },
-  userAgent: { type: String, default: "" },
+  ip: { type: String, default: '' },
+  userAgent: { type: String, default: '' },
   time: { type: Date, default: Date.now() },
 });
-const invUnSubMdl = model("inv_unsub", invUnSub);
+const invUnSubMdl = model('inv_unsub', invUnSub);
 //
 const respSchObj = {
   passcode: { type: String, required: true },
@@ -104,7 +104,7 @@ const respSchObj = {
   aRank: { type: Number, default: null },
 };
 const respSch = new Schema(respSchObj);
-const responsesMdl = model("responses", respSch);
+const responsesMdl = model('responses', respSch);
 //
 const joinSchema = new Schema({
   passcode: { type: String, required: true },
@@ -116,45 +116,45 @@ const joinSchema = new Schema({
   mic: { type: Boolean, required: true },
   scrn: { type: Boolean, required: true },
 });
-const joinModel = model("livecand", joinSchema);
+const joinModel = model('livecand', joinSchema);
 //
 const feedbackSch = new Schema({
-  email: { type: String, default: "" },
-  passcode: { type: String, default: "" },
-  feedback: { type: String, default: "" },
+  email: { type: String, default: '' },
+  passcode: { type: String, default: '' },
+  feedback: { type: String, default: '' },
 });
-const feedbackMdl = model("feedback", feedbackSch);
+const feedbackMdl = model('feedback', feedbackSch);
 //
 const contactSch = new Schema({
-  name: { type: String, default: "" },
-  mailId: { type: String, default: "" },
-  mobNo: { type: String, default: "" },
-  msg: { type: String, default: "" },
+  name: { type: String, default: '' },
+  mailId: { type: String, default: '' },
+  mobNo: { type: String, default: '' },
+  msg: { type: String, default: '' },
 });
-const contactMdl = model("contactReq", contactSch);
+const contactMdl = model('contactReq', contactSch);
 // Sent Mail record
 const sentMailSch = new Schema({
   email: { type: String, required: true },
   mailUID: { type: String, required: true },
   sentAt: { type: Date, default: Date.now() },
 });
-const sentMailMdl = model("sentMail", sentMailSch);
+const sentMailMdl = model('sentMail', sentMailSch);
 // Email un-Subscriber List
 const emailUnSub = new Schema({
   email: { type: String, required: true },
-  ip: { type: String, default: "" },
-  userAgent: { type: String, default: "" },
+  ip: { type: String, default: '' },
+  userAgent: { type: String, default: '' },
   time: { type: Date, default: Date.now() },
 });
-const emailUnSubMdl = model("mail_unsub", emailUnSub);
+const emailUnSubMdl = model('mail_unsub', emailUnSub);
 // Email re-Subscriber List
 const emailReSub = new Schema({
   email: { type: String, required: true },
-  ip: { type: String, default: "" },
-  userAgent: { type: String, default: "" },
+  ip: { type: String, default: '' },
+  userAgent: { type: String, default: '' },
   time: { type: Date, default: Date.now() },
 });
-const emailReSubMdl = model("mail_resub", emailReSub);
+const emailReSubMdl = model('mail_resub', emailReSub);
 //
 module.exports = {
   errMdl,

@@ -1,15 +1,15 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 //
-const createErr = require("http-errors");
+const createErr = require('http-errors');
 const {
   cookieObj,
   storeErr,
   isAdminLogged,
   clearAllCookies,
-} = require("./helpers/common");
+} = require('./helpers/common');
 //
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 //
 async function verifyPassword(pass, hash) {
   const result = await bcrypt.compare(pass, hash);
@@ -17,11 +17,11 @@ async function verifyPassword(pass, hash) {
   else return false;
 }
 //
-const { adminCredMdl, qBankMdl } = require("./helpers/schemaColl");
+const { adminCredMdl, qBankMdl } = require('./helpers/schemaColl');
 //
-const { adminAuth, qBankJoi, passcodeV } = require("./helpers/joiSchema");
+const { adminAuth, qBankJoi, passcodeV } = require('./helpers/joiSchema');
 //
-const { signInLimiter, signInLimiterIP } = require("./helpers/rateLimiter");
+const { signInLimiter, signInLimiterIP } = require('./helpers/rateLimiter');
 //
 async function loadTest(obj, uname) {
   // Load last 10 Test Uploaded
@@ -40,18 +40,18 @@ function processAdminSignIn(req, res, getAdmin) {
       else {
         req.session.adminLogged = true;
         req.session.admEmail = getAdmin.email;
-        res.cookie("uname", getAdmin.uname, cookieObj);
-        res.cookie("org", getAdmin.org, cookieObj);
-        res.cookie("img", getAdmin.img, cookieObj);
-        res.cookie("key", getAdmin.imgUpKey, cookieObj);
-        res.cookie("mailAcc", getAdmin.mailAcc, cookieObj);
+        res.cookie('uname', getAdmin.uname, cookieObj);
+        res.cookie('org', getAdmin.org, cookieObj);
+        res.cookie('img', getAdmin.img, cookieObj);
+        res.cookie('key', getAdmin.imgUpKey, cookieObj);
+        res.cookie('mailAcc', getAdmin.mailAcc, cookieObj);
       }
       resolve();
     });
   });
 }
 //
-router.post("/authAdmin/", async (req, res, next) => {
+router.post('/authAdmin/', async (req, res, next) => {
   try {
     const checkSignIn = isAdminLogged(req, 1);
     if (checkSignIn) {
@@ -62,7 +62,7 @@ router.post("/authAdmin/", async (req, res, next) => {
     //
     const result = await adminAuth.validateAsync(req.body);
     //
-    const myIP = req.headers["x-forwarded-for"] || req.ip;
+    const myIP = req.headers['x-forwarded-for'] || req.ip;
     const ipUnameKey = `${result.uname}_${myIP}`;
     // Get Failed attempts if any
     const [fails, failsIP] = await Promise.all([
@@ -146,13 +146,13 @@ router.post("/authAdmin/", async (req, res, next) => {
   }
 });
 //
-router.post("/upload_testData/", async (req, res, next) => {
+router.post('/upload_testData/', async (req, res, next) => {
   try {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
         createErr.Unauthorized(
-          "Admin not Logged In.<br>Please refresh this Page and Login"
+          'Admin not Logged In.<br>Please refresh this Page and Login'
         )
       );
     //
@@ -166,8 +166,8 @@ router.post("/upload_testData/", async (req, res, next) => {
       );
       if (result && result.ok) {
         let msg =
-          "Test was Updated Successfully.<br>We recommend reviewing before conducting this Test.";
-        if (result.nModified === 0) msg += "<br>No new modifications.";
+          'Test was Updated Successfully.<br>We recommend reviewing before conducting this Test.';
+        if (result.nModified === 0) msg += '<br>No new modifications.';
         res.send({ msg });
       } else
         next(
@@ -179,7 +179,7 @@ router.post("/upload_testData/", async (req, res, next) => {
       const response = await qBankMdl.create(body);
       if (response) {
         const msg =
-          "Test was Prepared Successfully.<br>We recommend reviewing before conducting this Test.";
+          'Test was Prepared Successfully.<br>We recommend reviewing before conducting this Test.';
         res.send({ msg });
       } else
         next(
@@ -189,15 +189,15 @@ router.post("/upload_testData/", async (req, res, next) => {
         );
     }
   } catch (error) {
-    if (error.name === "MongoError") {
+    if (error.name === 'MongoError') {
       if (error.code === 11000) {
         if (
-          error.message.search("duplicate key error") !== 1 &&
-          error.message.search("passcode_1 dup key") !== -1
+          error.message.search('duplicate key error') !== 1 &&
+          error.message.search('passcode_1 dup key') !== -1
         ) {
           return next(
             createErr(
-              "Oops! This Passcode is already being used by some other Test.<br>Please generate another one and Retry."
+              'Oops! This Passcode is already being used by some other Test.<br>Please generate another one and Retry.'
             )
           );
         }
@@ -208,13 +208,13 @@ router.post("/upload_testData/", async (req, res, next) => {
   }
 });
 //
-router.post("/loadTestData/", async (req, res, next) => {
+router.post('/loadTestData/', async (req, res, next) => {
   try {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
         createErr.Unauthorized(
-          "Admin not Logged In.<br>Please refresh this Page and Login"
+          'Admin not Logged In.<br>Please refresh this Page and Login'
         )
       );
     const body = await passcodeV.validateAsync(req.body);

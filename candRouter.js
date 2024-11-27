@@ -1,69 +1,69 @@
-const express = require("express");
+const express = require('express');
 const candRouter = express.Router();
 //
-const createErr = require("http-errors");
+const createErr = require('http-errors');
 //
-const { storeErr, isUserLogged } = require("./helpers/common");
+const { storeErr, isUserLogged } = require('./helpers/common');
 //
 const {
   qBankMdl,
   responsesMdl,
   feedbackMdl,
   credentialsMdl,
-} = require("./helpers/schemaColl");
+} = require('./helpers/schemaColl');
 //
 
 const myDict = [
-    "testOnCmnd",
-    "isEventAuth",
-    "liveCmnd",
-    "myPick",
-    "lastPick",
-    "handleVio",
-    "ckOrder",
-    "pullOff",
-    "pushRes",
-    "qContent",
-    "prebuild",
-    "attempt",
-    "review",
-    "green",
-    "yellow",
-    "clear",
-    "check",
-    "mark",
-    "pnpOs",
-    "virtualize",
-    "keepTrack",
-    "freeView",
-    "testOffCmnd",
-    "negCand",
-    "clearResp",
-    "messPre",
-    "bearPull",
-    "reAlloc",
-    "freeMaloc",
-    "vmClear",
-    "forceEnd",
-    "rebuild",
-    "postbuild",
-    "shuffle",
-    "deGrade",
-    "upGrade",
-    "poctoC",
-    "invigC",
-    "shieldFact",
-    "browserR",
-    "camView",
-    "clearAngle",
-    "micPober",
-    "shareScr",
-    "reShare",
-    "holdTest",
-    "cancelTest",
-    "hackP",
-    "myCha",
-    "careFlow",
+    'testOnCmnd',
+    'isEventAuth',
+    'liveCmnd',
+    'myPick',
+    'lastPick',
+    'handleVio',
+    'ckOrder',
+    'pullOff',
+    'pushRes',
+    'qContent',
+    'prebuild',
+    'attempt',
+    'review',
+    'green',
+    'yellow',
+    'clear',
+    'check',
+    'mark',
+    'pnpOs',
+    'virtualize',
+    'keepTrack',
+    'freeView',
+    'testOffCmnd',
+    'negCand',
+    'clearResp',
+    'messPre',
+    'bearPull',
+    'reAlloc',
+    'freeMaloc',
+    'vmClear',
+    'forceEnd',
+    'rebuild',
+    'postbuild',
+    'shuffle',
+    'deGrade',
+    'upGrade',
+    'poctoC',
+    'invigC',
+    'shieldFact',
+    'browserR',
+    'camView',
+    'clearAngle',
+    'micPober',
+    'shareScr',
+    'reShare',
+    'holdTest',
+    'cancelTest',
+    'hackP',
+    'myCha',
+    'careFlow',
   ],
   indexArr = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -71,7 +71,7 @@ const myDict = [
     40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
   ];
 function sliceQBank(testObj, qBank) {
-  qBank = Buffer.from(qBank).toString("base64");
+  qBank = Buffer.from(qBank).toString('base64');
   const rndmIArr = indexArr.sort(function () {
     return Math.round(Math.random()) - 0.5;
   });
@@ -100,11 +100,11 @@ function sliceQBank(testObj, qBank) {
   testObj.dictIndex = JSON.stringify(indexArr);
   return testObj;
 }
-const toDel = ["admin", "crctOpt", "testInfo", "qBank", "_id", "__v", "admin"];
+const toDel = ['admin', 'crctOpt', 'testInfo', 'qBank', '_id', '__v', 'admin'];
 function processTest(test, startIn, endIn) {
   test.testBuild0 = startIn;
   test.testBuild1 = endIn;
-  test.setPortalInit = Buffer.from(test.testInfo).toString("base64");
+  test.setPortalInit = Buffer.from(test.testInfo).toString('base64');
   sliceQBank(test, test.qBank);
   //
   toDel.forEach((each) => {
@@ -116,27 +116,27 @@ function makeDateTimeReadable(recDate, type) {
   const dateObj = new Date(recDate);
   const year = dateObj.getFullYear();
   // month as 2 digits (MM)
-  const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+  const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
   // date as 2 digits (DD)
-  const date = ("0" + dateObj.getDate()).slice(-2);
+  const date = ('0' + dateObj.getDate()).slice(-2);
   // hours as 2 digits (hh)
   let hours = dateObj.getHours();
   // minutes as 2 digits (mm)
-  const minutes = ("0" + dateObj.getMinutes()).slice(-2);
+  const minutes = ('0' + dateObj.getMinutes()).slice(-2);
   // date & time as YYYY-MM-DD hh:mm format:
   if (type == 1) {
-    let str = "";
-    str = date + "-" + month + "-" + year + " ";
+    let str = '';
+    str = date + '-' + month + '-' + year + ' ';
     //
-    let ampm = "AM";
+    let ampm = 'AM';
     //
     if (hours > 12) {
       hours -= 12;
-      ampm = "PM";
+      ampm = 'PM';
     } else if (hours === 0) hours = 12;
-    str += ("0" + hours).slice(-2);
+    str += ('0' + hours).slice(-2);
     //
-    str += ":" + minutes + " " + ampm;
+    str += ':' + minutes + ' ' + ampm;
     //
     return str;
   }
@@ -147,14 +147,14 @@ const {
   qsnrV,
   submitTestV,
   feedbackV,
-} = require("./helpers/joiSchema");
-candRouter.post("/examInfo/", async (req, res, next) => {
+} = require('./helpers/joiSchema');
+candRouter.post('/examInfo/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     }
@@ -167,7 +167,7 @@ candRouter.post("/examInfo/", async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
             )
           );
         } else if (test) {
@@ -178,9 +178,9 @@ candRouter.post("/examInfo/", async (req, res, next) => {
             endIn = Math.trunc((testEnd - now) / 1000);
           if (startIn >= 305) {
             let entryIn = Math.round(startIn / 60) - 4,
-              str = "";
+              str = '';
             if (entryIn > 60) {
-              str = Math.trunc(entryIn / 60) + "hr(s)";
+              str = Math.trunc(entryIn / 60) + 'hr(s)';
               entryIn = Math.ceil(entryIn % 60);
             }
             str += ` ${entryIn} min(s)`;
@@ -196,13 +196,13 @@ candRouter.post("/examInfo/", async (req, res, next) => {
           responsesMdl
             .findOne(
               { email: email, passcode: body.passcode },
-              "crntSec status questionnaire response tcResponse cdLangId firstEntry libSel",
+              'crntSec status questionnaire response tcResponse cdLangId firstEntry libSel',
               async (err, cand) => {
                 if (err) {
                   storeErr(req, err);
                   return next(
                     createErr.InternalServerError(
-                      "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+                      'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
                     )
                   );
                 } else if (cand) {
@@ -238,23 +238,23 @@ candRouter.post("/examInfo/", async (req, res, next) => {
                     } else
                       return next(
                         createErr.BadRequest(
-                          "Already Appeared.<br>Test Submitted."
+                          'Already Appeared.<br>Test Submitted.'
                         )
                       );
                   }
                   if (cand.status) {
                     cand.candStatusNull = Buffer.from(cand.status).toString(
-                      "base64"
+                      'base64'
                     );
                     delete cand.status;
                     //
                     cand.infoResQRB = Buffer.from(cand.response).toString(
-                      "base64"
+                      'base64'
                     );
                     delete cand.response;
                     //
                     cand.trpOSFail = Buffer.from(cand.tcResponse).toString(
-                      "base64"
+                      'base64'
                     );
                     delete cand.tcResponse;
                     //
@@ -283,7 +283,7 @@ candRouter.post("/examInfo/", async (req, res, next) => {
                       );
                       return next(
                         createErr.BadRequest(
-                          "Invitation Mail and Registration Mail mismatch."
+                          'Invitation Mail and Registration Mail mismatch.'
                         )
                       );
                     }
@@ -299,7 +299,7 @@ candRouter.post("/examInfo/", async (req, res, next) => {
                             );
                           return next(
                             createErr.InternalServerError(
-                              "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+                              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
                             )
                           );
                         } else {
@@ -311,7 +311,7 @@ candRouter.post("/examInfo/", async (req, res, next) => {
                             endIn = parseInt(test.dur) * 60 + startIn;
                           //
                           io.to(`${body.passcode}_admin`).emit(
-                            "newRegistration",
+                            'newRegistration',
                             { email: email }
                           );
                           //
@@ -332,7 +332,7 @@ candRouter.post("/examInfo/", async (req, res, next) => {
             )
             .lean();
         } else
-          next(createErr.NotFound("No Test/Event exists with this Passcode."));
+          next(createErr.NotFound('No Test/Event exists with this Passcode.'));
       })
       .lean();
   } catch (error) {
@@ -341,13 +341,13 @@ candRouter.post("/examInfo/", async (req, res, next) => {
     next(error);
   }
 });
-candRouter.post("/storeLibSel", async (req, res, next) => {
+candRouter.post('/storeLibSel', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email)
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     //
@@ -361,10 +361,10 @@ candRouter.post("/storeLibSel", async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
             )
           );
-        } else res.send({ status: "Stored" });
+        } else res.send({ status: 'Stored' });
       }
     );
   } catch (error) {
@@ -374,13 +374,13 @@ candRouter.post("/storeLibSel", async (req, res, next) => {
   }
 });
 // Submit Questionnaire
-candRouter.post("/submitQnr/", async (req, res, next) => {
+candRouter.post('/submitQnr/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email)
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     //
@@ -394,12 +394,12 @@ candRouter.post("/submitQnr/", async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
             )
           );
         } else {
-          let msg = "Questionnaire Submitted.";
-          if (response.nModified === 0) msg += "<br>No new modifications.";
+          let msg = 'Questionnaire Submitted.';
+          if (response.nModified === 0) msg += '<br>No new modifications.';
           res.send({ notify: msg });
         }
       }
@@ -411,10 +411,10 @@ candRouter.post("/submitQnr/", async (req, res, next) => {
   }
 });
 // Store ClientSide Errors
-candRouter.post("/mystore/", async (req, res, next) => {
+candRouter.post('/mystore/', async (req, res, next) => {
   try {
     storeErr(req, req.body.error);
-    res.send({ msg: "Success" });
+    res.send({ msg: 'Success' });
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -422,25 +422,25 @@ candRouter.post("/mystore/", async (req, res, next) => {
   }
 });
 // Submit Test
-candRouter.post("/submitTest/", async (req, res, next) => {
+candRouter.post('/submitTest/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     }
     //
     const body = await submitTestV.validateAsync(req.body);
     //
-    if (body.vData) body.vData = Buffer.from(body.vData, "base64").toString();
+    if (body.vData) body.vData = Buffer.from(body.vData, 'base64').toString();
     body.submittedOn = Date.now();
     if (body.crntSec === -1) {
-      body.ip = req.headers["x-forwarded-for"] || req.ip;
+      body.ip = req.headers['x-forwarded-for'] || req.ip;
       const headers = req.rawHeaders;
-      const i = headers.indexOf("User-Agent");
+      const i = headers.indexOf('User-Agent');
       if (i >= 0) body.uA = headers[i + 1];
     }
     responsesMdl.updateOne(
@@ -451,10 +451,10 @@ candRouter.post("/submitTest/", async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              "Something went wrong: Error encountered.<br>Sorry for the inconvienience."
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
             )
           );
-        } else res.send({ msg: "Success." });
+        } else res.send({ msg: 'Success.' });
       }
     );
   } catch (error) {
@@ -464,36 +464,36 @@ candRouter.post("/submitTest/", async (req, res, next) => {
   }
 });
 //
-candRouter.post("/feedback/", async (req, res, next) => {
+candRouter.post('/feedback/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     }
     //
     const body = await feedbackV.validateAsync(req.body);
     if (!body.feedback) {
-      res.send({ msg: "Continued without feedback." });
+      res.send({ msg: 'Continued without feedback.' });
       return false;
     }
     body.email = email;
-    if (!req.session.loggedIn) body.email += "User not logged In.";
+    if (!req.session.loggedIn) body.email += 'User not logged In.';
     // Formal Verification of send email and logged in email
     feedbackMdl.create(body, (err, response) => {
       if (err || !response) {
         if (err) storeErr(req, err);
         return next(
           createErr.InternalServerError(
-            "Something went wrong: Error encountered.<br>Continued without accepting feedback."
+            'Something went wrong: Error encountered.<br>Continued without accepting feedback.'
           )
         );
       } else if (response)
         res.send({
-          msg: "Success",
+          msg: 'Success',
         });
     });
   } catch (error) {
@@ -502,36 +502,36 @@ candRouter.post("/feedback/", async (req, res, next) => {
     next(error);
   }
 });
-candRouter.get("/fee", async (req, res) => {
+candRouter.get('/fee', async (req, res) => {
   try {
     const data = await feedbackMdl.find();
-    let str = "<table>";
+    let str = '<table>';
     data.forEach((each) => {
       str += `<tr><td>${each.email}</td><td>${each.feedback}</td></tr>`;
     });
-    str += "</table>";
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    str += '</table>';
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(str);
   } catch (error) {}
 });
 //
-candRouter.post("/resultPre/", async (req, res, next) => {
+candRouter.post('/resultPre/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     }
     //
-    credentialsMdl.findOne({ email: email }, "result", (err, resp) => {
+    credentialsMdl.findOne({ email: email }, 'result', (err, resp) => {
       if (err || !resp) {
         if (err) storeErr(req, err);
         next(
           createErr.InternalServerError(
-            "Something went wrong.Please contact if issue persists."
+            'Something went wrong.Please contact if issue persists.'
           )
         );
       } else res.send({ data: resp.result });
@@ -542,13 +542,13 @@ candRouter.post("/resultPre/", async (req, res, next) => {
   }
 });
 //
-candRouter.post("/showResult/", async (req, res, next) => {
+candRouter.post('/showResult/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          "Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn."
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
         )
       );
     }
@@ -556,7 +556,7 @@ candRouter.post("/showResult/", async (req, res, next) => {
     const body = await passcodeV.validateAsync(req.body);
     const promise1 = qBankMdl.findOne(
       { passcode: body.passcode },
-      "testInfo qBank	crctOpt"
+      'testInfo qBank	crctOpt'
     );
     const promise2 = responsesMdl.findOne({
       passcode: body.passcode,
@@ -567,18 +567,18 @@ candRouter.post("/showResult/", async (req, res, next) => {
         if (!resp[0] || !resp[1])
           return next(
             createErr.NotFound(
-              "There was something wrong detected with your Participation.<br>Contact your HR/Incharge."
+              'There was something wrong detected with your Participation.<br>Contact your HR/Incharge.'
             )
           );
         const obj = {};
         obj.libSel = resp[1].libSel;
         obj.myNpQVal = resp[1].status;
-        obj.cwrnfreso = Buffer.from(resp[1].response).toString("base64");
-        obj.ifotrefres = Buffer.from(resp[1].tcResponse).toString("base64");
+        obj.cwrnfreso = Buffer.from(resp[1].response).toString('base64');
+        obj.ifotrefres = Buffer.from(resp[1].tcResponse).toString('base64');
         obj.cdLangUsed = resp[1].cdLangId;
         obj.scoreDet = resp[1].result;
-        obj.tsingif = Buffer.from(resp[0].testInfo).toString("base64");
-        obj.mybknait = Buffer.from(resp[0].qBank).toString("base64");
+        obj.tsingif = Buffer.from(resp[0].testInfo).toString('base64');
+        obj.mybknait = Buffer.from(resp[0].qBank).toString('base64');
         obj.crctOpt = resp[0].crctOpt;
         obj.exmnrMark = resp[1].exmnrMark;
         obj.exmnrCmnt = resp[1].exmnrCmnt;
@@ -591,7 +591,7 @@ candRouter.post("/showResult/", async (req, res, next) => {
         storeErr(req, err);
         next(
           createErr.InternalServerError(
-            "Somthing went wrong.<br>Contact if issue persists."
+            'Somthing went wrong.<br>Contact if issue persists.'
           )
         );
       });

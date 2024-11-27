@@ -1,53 +1,53 @@
-const express = require("express");
-const path = require("path");
-const createErr = require("http-errors");
-require("dotenv").config();
+const express = require('express');
+const path = require('path');
+const createErr = require('http-errors');
+require('dotenv').config();
 const appEnv = process.env.NODE_ENV;
-const isDev = appEnv === "DEV";
-const isProd = appEnv === "PROD";
+const isDev = appEnv === 'DEV';
+const isProd = appEnv === 'PROD';
 
 const app = express();
 if (isDev) {
-  const morgan = require("morgan");
-  app.use(morgan("dev"));
+  const morgan = require('morgan');
+  app.use(morgan('dev'));
 
-  const cors = require("cors");
-  app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+  const cors = require('cors');
+  app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 }
 
-const helmet = require("helmet");
+const helmet = require('helmet');
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        "script-src": [
+        'script-src': [
           "'self'",
-          "cdnjs.cloudflare.com",
+          'cdnjs.cloudflare.com',
           "'sha256-VKT9zliU97AHJFMzorwPrsYiy3SStraIWFnV5fZfeSk='", // for babel
           "'unsafe-eval'", // Required for VueJS only
           "'nonce-ekp3ldxrt5qi'",
         ],
-        "img-src": ["'self'", "data:", "https://i.ibb.co/"],
-        "connect-src": [
+        'img-src': ["'self'", 'data:', 'https://i.ibb.co/'],
+        'connect-src': [
           "'self'",
           // "https://0.peerjs.com/",
           // "wss://0.peerjs.com",
-          "https://api.imgbb.com/1/upload",
-          "https://mypeercleanserve.herokuapp.com/",
-          "wss://mypeercleanserve.herokuapp.com",
-          "https://mypeerserv.tk/",
-          "wss://mypeerserv.tk",
+          'https://api.imgbb.com/1/upload',
+          'https://mypeercleanserve.herokuapp.com/',
+          'wss://mypeercleanserve.herokuapp.com',
+          'https://mypeerserv.tk/',
+          'wss://mypeerserv.tk',
           // "http://localhost:9000/",
           // "ws://localhost:9000",
         ],
-        "frame-src": [
+        'frame-src': [
           "'self'",
-          "*.github.io",
+          '*.github.io',
           // "'unsafe-inline'",
           // "'unsafe-eval'",
         ],
-        "worker-src": ["blob:"],
+        'worker-src': ['blob:'],
       },
     },
   })
@@ -55,19 +55,19 @@ app.use(
 //
 // app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: false }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: false }));
 //
-const session = require("express-session");
-const redisClient = require("./helpers/redisConnect");
-const RedisStore = require("connect-redis")(session);
+const session = require('express-session');
+const redisClient = require('./helpers/redisConnect');
+const RedisStore = require('connect-redis')(session);
 app.use(
   session({
     store: new RedisStore({
       client: redisClient,
     }),
     secret: process.env.SESSION_SECRET,
-    name: "myIdentity",
+    name: 'myIdentity',
     // Forces the session to be saved
     // back to the session store
     resave: false,
@@ -81,13 +81,13 @@ app.use(
       secure: isProd ? true : false,
       httpOnly: true,
       maxAge: 3600000, // 60mins
-      sameSite: isProd ? "none" : "strict", // "strict"/"lax" for dev
+      sameSite: isProd ? 'none' : 'strict', // "strict"/"lax" for dev
     },
     proxy: isProd ? true : false,
   })
 );
 //
-const cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
 app.use(cookieParser(process.env.COOKIE_SECRET));
 //
 //
@@ -101,7 +101,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 // 	})
 // );
 // Moongoose
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 // const dburi = "mongodb://localhost:27017/exam_db";
 const dburi = process.env.DB_URI;
 mongoose.connect(dburi, {
@@ -113,37 +113,37 @@ mongoose.connect(dburi, {
 //Get the default connection
 const db = mongoose.connection;
 //Bind connection to error event (to get notification of connection errors)
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", function () {
-  console.log("Monogo Connection OPEN");
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {
+  console.log('Monogo Connection OPEN');
 });
 // Rate Limiter
 // const { rateLimiterMiddleware } = require("./helpers/rateLimiter");
 // app.use(rateLimiterMiddleware);
 //
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'public')));
 //
 //
-const extraTask = require("./extraLocalTask");
-app.use("/e", extraTask);
+const extraTask = require('./extraLocalTask');
+app.use('/e', extraTask);
 //
-const loginRouter = require("./loginRouter");
-app.use("/login", loginRouter);
+const loginRouter = require('./loginRouter');
+app.use('/login', loginRouter);
 //
-const googleSignIn = require("./googleSignIn");
-app.use("/gsign", googleSignIn);
+const googleSignIn = require('./googleSignIn');
+app.use('/gsign', googleSignIn);
 //
-const adminRouter = require("./adminRoute");
-app.use("/admin", adminRouter);
+const adminRouter = require('./adminRoute');
+app.use('/admin', adminRouter);
 //
-const preResultRouter = require("./preResultRoute");
-app.use("/preResult", preResultRouter);
+const preResultRouter = require('./preResultRoute');
+app.use('/preResult', preResultRouter);
 //
-const { invRouter, setSocketConn } = require("./invitationRoute");
-app.use("/invite", invRouter);
+const { invRouter, setSocketConn } = require('./invitationRoute');
+app.use('/invite', invRouter);
 //
-const mailRoute = require("./emailService/emailRoute");
-app.use("/email", mailRoute);
+const mailRoute = require('./emailService/emailRoute');
+app.use('/email', mailRoute);
 // EXAMINATION CODING
 //
 const {
@@ -151,7 +151,7 @@ const {
   isAdminLogged,
   storeErr,
   clearAllCookies,
-} = require("./helpers/common");
+} = require('./helpers/common');
 //
 function processLogout(req, res) {
   req.session.destroy();
@@ -159,32 +159,32 @@ function processLogout(req, res) {
   return true;
 }
 //
-const { candRouter, setSocketCand } = require("./candRouter");
-app.use("/cand", candRouter);
+const { candRouter, setSocketCand } = require('./candRouter');
+app.use('/cand', candRouter);
 //
-const compilerRouter = require("./compiler");
-app.use("/compiler", compilerRouter);
+const compilerRouter = require('./compiler');
+app.use('/compiler', compilerRouter);
 //
-const proctorRouter = require("./proctorRoute");
-app.use("/proctor", proctorRouter);
+const proctorRouter = require('./proctorRoute');
+app.use('/proctor', proctorRouter);
 //
-const headRouter = require("./headRoute");
-app.use("/helloHead", headRouter);
+const headRouter = require('./headRoute');
+app.use('/helloHead', headRouter);
 //
-const uploadRoute = require("./imageUpload");
-app.use("/upload", uploadRoute);
+const uploadRoute = require('./imageUpload');
+app.use('/upload', uploadRoute);
 //
-app.get("/logout/", (req, res) => {
+app.get('/logout/', (req, res) => {
   if (processLogout(req, res)) {
     const query = req.query;
     if (query.redirect) res.redirect(query.redirect);
-    else res.send("Logout Success.");
-  } else res.send("Something went wrong.");
+    else res.send('Logout Success.');
+  } else res.send('Something went wrong.');
 });
 //
-app.post("/logout/", (req, res, next) => {
+app.post('/logout/', (req, res, next) => {
   if (processLogout(req, res)) {
-    res.send({ msg: "Logout Success." });
+    res.send({ msg: 'Logout Success.' });
   } else {
     next(
       createErr.InternalServerError(
@@ -194,11 +194,11 @@ app.post("/logout/", (req, res, next) => {
   }
 });
 //
-app.get("*", (req, res) => {
+app.get('*', (req, res) => {
   const url = req._parsedUrl.pathname.toLowerCase();
   const param = req.query;
   let userInfo;
-  if (url === "/testadmin" || url === "/monitor") {
+  if (url === '/testadmin' || url === '/monitor') {
     userInfo = isAdminLogged(req, 1);
     if (userInfo === false) userInfo = { loggedIn: false };
     if (param.proctor) userInfo.passcode = param.proctor;
@@ -218,7 +218,7 @@ app.get("*", (req, res) => {
   //
   if (!userInfo) userInfo = { loggedIn: false };
   // const secure = req.csrfToken();
-  const secure = "sadsadasds6a6a4sd6a4d6a4d86sa4";
+  const secure = 'sadsadasds6a6a4sd6a4d6a4d86sa4';
   userInfo.token = secure;
   //
   res.send(
@@ -234,10 +234,10 @@ app.use(async (req, res, next) => {
 // Error Handeler Middleware
 app.use((err, req, res, next) => {
   let showErr = err.message;
-  if (showErr === "invalid csrf token")
+  if (showErr === 'invalid csrf token')
     showErr =
-      "Security Token mis-match.<br>Refresh/Reload this Page to create a Secure Channel.";
-  else if (err.name === "MongoError") {
+      'Security Token mis-match.<br>Refresh/Reload this Page to create a Secure Channel.';
+  else if (err.name === 'MongoError') {
     showErr =
       "Something went wrong.<br>You request couldn't be fulfilled at the moment.<br>Please retry after sometime.";
     storeErr(req, err);
@@ -247,66 +247,66 @@ app.use((err, req, res, next) => {
     .send({ error: { status: err.status || 500, message: showErr } });
 });
 //
-process.env.TZ = "Asia/Kolkata";
+process.env.TZ = 'Asia/Kolkata';
 //
-const http = require("http");
+const http = require('http');
 const httpServer = http.Server(app);
 //
 // const io = require("socket.io")(httpServer);
-const io = require("socket.io")(httpServer, {
+const io = require('socket.io')(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
   },
 });
 //
-const { joinModel } = require("./helpers/schemaColl");
+const { joinModel } = require('./helpers/schemaColl');
 //
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   // send socket connnection to invitation Route
   setSocketConn(io);
   setSocketCand(io);
   //
-  socket.on("join-room", (roomId, data) => {
+  socket.on('join-room', (roomId, data) => {
     // passcode is roomId
     socket.join(roomId);
     // If Candidate Joining
-    if (roomId.search("_admin") === -1) {
+    if (roomId.search('_admin') === -1) {
       data.socketId = socket.id;
       joinModel.create(data, function (err, response) {
-        if (err || !response) storeErr("", err);
+        if (err || !response) storeErr('', err);
         else if (response)
-          socket.to(`${roomId}_admin`).emit("cand-connected", data);
+          socket.to(`${roomId}_admin`).emit('cand-connected', data);
       });
-    } else socket.to(roomId).emit("newProctor", data);
+    } else socket.to(roomId).emit('newProctor', data);
   });
-  socket.on("disconnect", () => {
+  socket.on('disconnect', () => {
     joinModel.findOneAndDelete({ socketId: socket.id }, (err, status) => {
-      if (err) storeErr("", err);
+      if (err) storeErr('', err);
       else if (status)
-        socket.to(`${status.passcode}_admin`).emit("cand-disConnected", status);
+        socket.to(`${status.passcode}_admin`).emit('cand-disConnected', status);
     });
   });
   //
-  socket.on("broadcastTest", (data) => {
-    socket.to(data.passcode).emit("recBroadcast", data);
+  socket.on('broadcastTest', (data) => {
+    socket.to(data.passcode).emit('recBroadcast', data);
   });
   // Send to all in the Test client will check and close if it was their Proctor
-  socket.on("proctorCloseAll", (obj) => {
-    socket.to(obj.passcode).emit("closeAll", obj.peerId);
+  socket.on('proctorCloseAll', (obj) => {
+    socket.to(obj.passcode).emit('closeAll', obj.peerId);
   });
   // Sent to specific in case remove from proctoring list
-  socket.on("proctorClose", (obj) => {
-    io.to(obj.socketId).emit("closeAll", obj.peerId);
+  socket.on('proctorClose', (obj) => {
+    io.to(obj.socketId).emit('closeAll', obj.peerId);
   });
   //
-  socket.on("closeMedia", (obj) => {
-    io.to(obj.socketId).emit("closeMedia", obj.peerId);
+  socket.on('closeMedia', (obj) => {
+    io.to(obj.socketId).emit('closeMedia', obj.peerId);
   });
   //
-  socket.on("endTest", (socketId, callback) => {
+  socket.on('endTest', (socketId, callback) => {
     callback({ done: true });
-    io.to(socketId).emit("endTest");
+    io.to(socketId).emit('endTest');
   });
 });
 //

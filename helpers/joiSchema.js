@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 const tokenSch = { _csrf: Joi.string().min(10).max(100).trim().required() };
 const unamSchReq = {
   uname: Joi.string().min(3).max(60).trim().required(),
@@ -9,7 +9,7 @@ const emailSch = {
     .max(60)
     .lowercase()
     .trim()
-    .email({ tlds: { allow: ["com", "in", "edu", "net"] } })
+    .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } })
     .required(),
 };
 const emailV = Joi.object(emailSch);
@@ -37,7 +37,7 @@ const pswdSch = {
     )
     .required()
     .messages({
-      "string.pattern.base": "Password Validation Error : Invalid Format",
+      'string.pattern.base': 'Password Validation Error : Invalid Format',
     }),
 };
 const pswdV = Joi.object(pswdSch);
@@ -58,8 +58,8 @@ const registerGglV = Joi.object({
 });
 const profileV = Joi.object({
   uname: Joi.string().alphanum().min(6).max(15).trim().required().messages({
-    "string.alphanum":
-      "your username can contain alphanumeric characters only.<br>No white-spaces nor any special characters is allowed.<br>it can only be any combination of alphabets and numbers",
+    'string.alphanum':
+      'your username can contain alphanumeric characters only.<br>No white-spaces nor any special characters is allowed.<br>it can only be any combination of alphabets and numbers',
   }),
   name: Joi.string().min(5).max(30).trim().required(),
   sendCand: Joi.boolean().required(),
@@ -142,9 +142,9 @@ const inviteMailV = Joi.object({
     .max(60)
     .lowercase()
     .trim()
-    .email({ tlds: { allow: ["com", "in", "edu", "net", "cf"] } }),
+    .email({ tlds: { allow: ['com', 'in', 'edu', 'net', 'cf'] } }),
   sender: Joi.string().max(50).trim().required(),
-  token: Joi.string().max(120).trim().allow(null, ""),
+  token: Joi.string().max(120).trim().allow(null, ''),
   mailBody: Joi.string().max(10000).trim().required(),
   mailSub: Joi.string().max(250).trim().required(),
   myHold: Joi.string().max(50).trim().required(),
@@ -201,7 +201,7 @@ const compilerV = Joi.object({
   resource: Joi.string().max(10000).trim().required(),
   target: Joi.number().integer().required(),
   useflow: Joi.number().integer().required(),
-  fordata: Joi.string().min(0).max(2000).trim().allow(null, ""),
+  fordata: Joi.string().min(0).max(2000).trim().allow(null, ''),
   ...tokenSch,
 });
 //
@@ -222,10 +222,10 @@ const addAdminV = Joi.object({
 });
 //
 const contactV = Joi.object({
-  name: Joi.string().empty("").max(50).trim(),
-  mailId: Joi.string().empty("").max(100).lowercase().trim(),
-  mobNo: Joi.string().empty("").max(10).trim(),
-  msg: Joi.string().empty("").max(500).trim(),
+  name: Joi.string().empty('').max(50).trim(),
+  mailId: Joi.string().empty('').max(100).lowercase().trim(),
+  mobNo: Joi.string().empty('').max(10).trim(),
+  msg: Joi.string().empty('').max(500).trim(),
   ...tokenSch,
 });
 // Email Unsubscribe

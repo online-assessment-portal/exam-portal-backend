@@ -1,19 +1,19 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 //
-const { storeErr, processSignIn, isUserLogged } = require("./helpers/common");
+const { storeErr, processSignIn, isUserLogged } = require('./helpers/common');
 //
-const directSignUp = require("./directSignUp");
+const directSignUp = require('./directSignUp');
 //
-const { credentialsMdl } = require("./helpers/schemaColl");
+const { credentialsMdl } = require('./helpers/schemaColl');
 //
-const { google } = require("googleapis");
+const { google } = require('googleapis');
 // const people = google.people("v1");
 //
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  redirect: process.env.gRedirect,
+  redirect: process.env.GOOGLE_CLIENT_REDIRECT_URI,
 };
 const oauth2Client = new google.auth.OAuth2(
   googleConfig.clientId,
@@ -22,15 +22,15 @@ const oauth2Client = new google.auth.OAuth2(
 );
 google.options({ auth: oauth2Client });
 // This scope tells google what information we want to request.
-// const defaultScope = ["openid", "profile", "email"];
+const defaultScope = ['openid', 'profile', 'email'];
 // Get a url which will open the google sign-in page and request access to the scope provided
-// function getConnectionUrl(auth) {
-//   return auth.generateAuthUrl({
-//     access_type: "offline",
-//     scope: defaultScope,
-//   });
-// }
-// console.log({ getConnectionUrl: getConnectionUrl(oauth2Client) });
+function getConnectionUrl(auth) {
+  return auth.generateAuthUrl({
+    access_type: 'offline',
+    scope: defaultScope,
+  });
+}
+console.log({ getConnectionUrl: getConnectionUrl(oauth2Client) });
 //  Extract the email and id of the google account from the "code" parameter.
 async function getGoogleAccountFromCode(code) {
   // get the auth "tokens" from the request
@@ -41,7 +41,7 @@ async function getGoogleAccountFromCode(code) {
 
   const oauth2 = google.oauth2({
     auth: oauth2Client,
-    version: "v2",
+    version: 'v2',
   });
   const userInfo = await oauth2.userinfo.get();
 
@@ -53,7 +53,7 @@ async function getGoogleAccountFromCode(code) {
   // return res.data;
 }
 //
-router.get("/google-login", async (req, res) => {
+router.get('/google-login', async (req, res) => {
   try {
     if (isUserLogged(req))
       return res.send(
@@ -73,7 +73,7 @@ router.get("/google-login", async (req, res) => {
     if (resp) {
       // Google Account Exists
       processSignIn(req, res, resp.email, resp.uname, resp.name, resp.img, 2);
-      res.redirect("/test");
+      res.redirect('/test');
       return false;
     } else {
       // Google Account - SignUp
@@ -82,19 +82,19 @@ router.get("/google-login", async (req, res) => {
         googleUserData.email,
         googleUserData.name,
         googleUserData.id,
-        "Google SignUp"
+        'Google SignUp'
       )
         .then(() => {
           processSignIn(
             req,
             res,
             googleUserData.email,
-            "",
+            '',
             googleUserData.name,
-            "",
+            '',
             2
           );
-          res.redirect("/test?&ds=true");
+          res.redirect('/test?&ds=true');
           return false;
         })
         .catch((err) => {
