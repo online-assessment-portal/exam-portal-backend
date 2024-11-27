@@ -1,10 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
+const { v4: uuidv4 } = require('uuid');
 //
-const { storeErr } = require("../helpers/common");
+const { storeErr } = require('../helpers/common');
 //
-const { emailV } = require("../helpers/joiSchema");
-const { sentMailMdl } = require("../helpers/schemaColl");
-const { awsTransporter } = require("../aws_sesMailer");
+const { emailV } = require('../helpers/joiSchema');
+const { sentMailMdl } = require('../helpers/schemaColl');
+const { awsTransporter } = require('../aws_sesMailer');
 //
 function delay2Sec() {
   return new Promise((res) => {
@@ -20,7 +20,7 @@ function prepareAndSend(to) {
       to = await emailV.validateAsync({ email: to });
       to = to.email;
     } catch (error) {
-      console.log("Email Address Validation Failed Error " + error + to);
+      console.log('Email Address Validation Failed Error ' + error + to);
       reject();
     }
     const mailUID = uuidv4();
@@ -31,13 +31,16 @@ function prepareAndSend(to) {
     mailObject.list.unsubscribe.url = unsubUrl;
     //
     try {
-      console.log("Sending to " + mailObject.to);
+      console.log('Sending to ' + mailObject.to);
       // const info = await awsTransporter.sendMail(mailObject);
       const info = await (() => {
         return new Promise((res) => {
-          setTimeout(() => {
-            res({ accepted: [to] });
-          }, Math.floor(Math.random() * 10000 + 3000));
+          setTimeout(
+            () => {
+              res({ accepted: [to] });
+            },
+            Math.floor(Math.random() * 10000 + 3000)
+          );
         });
       })();
       if (info.accepted[0] === to) {
@@ -46,10 +49,10 @@ function prepareAndSend(to) {
         const rndm = Math.floor(Math.random() * 10000 + 3000);
         setTimeout(() => {
           if (rndm > 5000) {
-            console.log("Resolved " + store.email);
+            console.log('Resolved ' + store.email);
             resolve();
           } else {
-            console.log("Rejected " + store.email);
+            console.log('Rejected ' + store.email);
             reject();
           }
         }, rndm);
@@ -90,7 +93,7 @@ async function processStack(stack) {
 async function regulateQueue(list) {
   // Extract a stack of 10
   const stack = list.splice(0, 2);
-  console.log("Stack List - " + stack);
+  console.log('Stack List - ' + stack);
   if (stack.length)
     processStack(stack)
       .then(() => {
@@ -100,51 +103,51 @@ async function regulateQueue(list) {
       })
       .catch(() =>
         console.log(
-          "Promise.all failure - not all mails were success at regulateQueue"
+          'Promise.all failure - not all mails were success at regulateQueue'
         )
       );
 }
 //
-const fs = require("fs").promises;
+const fs = require('fs').promises;
 //
 let list = [],
-  body1 = "",
-  body2 = "",
+  body1 = '',
+  body2 = '',
   mailObject = {
     from: '"CEO, Shred Test" <ceo@shredtest.coderadiant.com>',
-    subject: "Free Online Examination Portal",
+    subject: 'Free Online Examination Portal',
     replyTo: '"Support" <support@shredtest.coderadiant.com>',
     // to: "", - set at prepare mail
     // html: "", - set at prepare mail
-    text: "Your browser or app does not support this mail. Open it in updated browser / App",
+    text: 'Your browser or app does not support this mail. Open it in updated browser / App',
     list: {
       unsubscribe: {
         // url: "", - set at prepare mail
-        comment: "unsublinking",
+        comment: 'unsublinking',
       },
     },
   };
 async function main() {
   list = [];
-  body1 = "";
-  body2 = "";
+  body1 = '';
+  body2 = '';
   // Read html body from file
   await Promise.all([
     // fs.readFile("./emailService/body1.txt", "utf8"),
     // fs.readFile("./emailService/body2.txt", "utf8"),
-    fs.readFile("./body1.txt", "utf8"),
-    fs.readFile("./body2.txt", "utf8"),
+    fs.readFile('./body1.txt', 'utf8'),
+    fs.readFile('./body2.txt', 'utf8'),
   ])
     .then((val) => {
-      list = require("./mailList");
+      list = require('./mailList');
       body1 = val[0];
       body2 = val[1];
     })
     .catch((error) => {
-      console.log("Error Reading File\n" + error.message);
+      console.log('Error Reading File\n' + error.message);
     });
-  if (!body1 || !body2) return console.log("\nEmpty Body");
-  else if (!list.length) return console.log("Mailing List is Empty");
+  if (!body1 || !body2) return console.log('\nEmpty Body');
+  else if (!list.length) return console.log('Mailing List is Empty');
   regulateQueue(list);
 }
 main();

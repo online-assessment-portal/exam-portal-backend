@@ -1,13 +1,13 @@
-const express = require("express");
+const express = require('express');
 const invRouter = express.Router();
 //
-const createErr = require("http-errors");
+const createErr = require('http-errors');
 const {
   isAdminLogged,
   isUserLogged,
   storeErr,
   processSignIn,
-} = require("./helpers/common");
+} = require('./helpers/common');
 //
 const {
   passcodeV,
@@ -16,29 +16,29 @@ const {
   inviteMailV,
   inviteAuthV,
   inviteUnSubV,
-} = require("./helpers/joiSchema");
+} = require('./helpers/joiSchema');
 //
 const {
   invitationMdl,
   invUnSubMdl,
   credentialsMdl,
-} = require("./helpers/schemaColl");
+} = require('./helpers/schemaColl');
 //
-const directSignUp = require("./directSignUp");
+const directSignUp = require('./directSignUp');
 //
 //
-const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 function randomString(length) {
   const result = [];
   for (let i = 0; i < length; i++)
     result.push(chars.charAt(Math.floor(Math.random() * 62)));
-  return result.join("");
+  return result.join('');
 }
 //
-const { awsTransporter } = require("./aws_sesMailer");
+const { awsTransporter } = require('./aws_sesMailer');
 //
-const nodemailer = require("nodemailer");
-const { google } = require("googleapis");
+const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
 //
 const CLIENT_ID = process.env.INV_CLIENT_ID,
   CLIENT_SECRET = process.env.INV_CLIENT_SECRET,
@@ -58,14 +58,14 @@ const oAuth2Client = new google.auth.OAuth2(
 //   scope: SCOPES,
 // });
 // console.log({ authUrl });
-invRouter.get("/setupMailer/", async (req, res, next) => {
+invRouter.get('/setupMailer/', async (req, res, next) => {
   try {
     const code = req.query.code;
-    if (!code) return next(createErr.BadRequest("Invalid Request Received"));
+    if (!code) return next(createErr.BadRequest('Invalid Request Received'));
     const { tokens } = await oAuth2Client.getToken(code);
     if (!tokens.refresh_token)
       return createErr.BadRequest(
-        "Mailer Account already exists for this Mail-Id."
+        'Mailer Account already exists for this Mail-Id.'
       );
     const secure = req.csrfToken();
     const sendForm = `<style> form, input { font-size: large; font-family: "Roboto", sans-serif; } input { min-width: 40%; } button { font-size: large; } </style> <form action="/invite/setupAccount" method="post" style="font-size: x-large;"> <label for="name">Sender's Name</label> <input type="text" name="name" id="name" placeholder="Will be displayed in eMail" required> <br><br> <label for="mail">Email Address</label> <input type="email" name="email" id="mail" placeholder="Same as used for account creation" required> <input type="hidden" name="token" value="${tokens.refresh_token}"> <input type="hidden" name="_csrf" value="${secure}"><br> <br> <ul> <li>Please Note these settings are irreversible.</li> <li>Verify before submit</li> <li>Details are case-sensitive</li> <li>If the details do not match, mail will fail to deliver.</li> </ul> <button type="submit">Final Submit</button> </form>`;
@@ -76,18 +76,18 @@ invRouter.get("/setupMailer/", async (req, res, next) => {
   }
 });
 //
-const { adminCredMdl } = require("./helpers/schemaColl");
+const { adminCredMdl } = require('./helpers/schemaColl');
 //
-invRouter.post("/setupAccount", async (req, res, next) => {
+invRouter.post('/setupAccount', async (req, res, next) => {
   try {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
-        createErr.Unauthorized("Admin not Logged In.<br>Please Login.")
+        createErr.Unauthorized('Admin not Logged In.<br>Please Login.')
       );
     const body = await invMailAcc.validateAsync(req.body);
     //
-    const account = await adminCredMdl.findOne({ uname: uname }, "mailAcc");
+    const account = await adminCredMdl.findOne({ uname: uname }, 'mailAcc');
     //
     let mailAccS = account.mailAcc;
     if (!mailAccS) mailAccS = {};
@@ -103,7 +103,7 @@ invRouter.post("/setupAccount", async (req, res, next) => {
       return res.send(
         'Account Created<br><br><a href="/testAdmin">Go to AdminPanel</a> logout and re-login to view updated Account.'
       );
-    res.send("Something went wrong");
+    res.send('Something went wrong');
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -115,7 +115,7 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
   mailBody = mailBody.replace(/\(\(=CandidateEmail=\)\)/g, to);
   mailBody = mailBody.replace(/\(\(=CandidateLink=\)\)/g, link);
   // gm - Gmail , ms - AWS SES
-  const mailServer = reqBody.token ? "gm" : "ms";
+  const mailServer = reqBody.token ? 'gm' : 'ms';
   const unsubLink = `https://shredtest.coderadiant.com/invite/unsub?passcode=${reqBody.passcode}&myAuthHash=${uniqueId}&email=${to}&sender=${reqBody.from}&type=${mailServer}`;
   mailBody = mailBody.replace(/\(\(=UnsubLink=\)\)/g, unsubLink);
   //
@@ -125,17 +125,17 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
     subject: reqBody.mailSub,
     html: mailBody,
     text:
-      "To view complete mail: Open it in supported browser.Your Exam-Link is" +
+      'To view complete mail: Open it in supported browser.Your Exam-Link is' +
       link,
     list: {
       unsubscribe: {
         url: unsubLink,
-        comment: "unsublinking",
+        comment: 'unsublinking',
       },
     },
   };
-  if (mailServer === "ms")
-    mailObject.replyTo = "contact@shredtest.coderadiant.com";
+  if (mailServer === 'ms')
+    mailObject.replyTo = 'contact@shredtest.coderadiant.com';
   //
   const retObj = {
     email: to,
@@ -157,8 +157,8 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
       err
     );
     // 2 - Server Error/No Internet Server, 3 - Invalid Recepient, 4 - Auth Failed
-    if (err.code === "EENVELOPE") retObj.status = 3;
-    else if (err.code === "EAUTH") retObj.status = 4;
+    if (err.code === 'EENVELOPE') retObj.status = 3;
+    else if (err.code === 'EAUTH') retObj.status = 4;
     else retObj.status = 2;
     return retObj;
   }
@@ -184,14 +184,14 @@ async function initSend(
     sendTo = await emailV.validateAsync({ email: sendTo });
     sendTo = sendTo.email;
   } catch (error) {
-    storeErr("", `Invalid mail for invitation : ${sendTo}`);
-    io.to(reqBody.myHold).emit("write", {
-      show: "Invalid email detected: ",
+    storeErr('', `Invalid mail for invitation : ${sendTo}`);
+    io.to(reqBody.myHold).emit('write', {
+      show: 'Invalid email detected: ',
       status: [sendTo, 3],
     });
-    io.to(reqBody.myHold).emit("notify", {
-      type: "e",
-      msg: "Invalid Email Detected: See mail queue writer.<br>Rest - In progress",
+    io.to(reqBody.myHold).emit('notify', {
+      type: 'e',
+      msg: 'Invalid Email Detected: See mail queue writer.<br>Rest - In progress',
     });
   }
   //
@@ -208,14 +208,14 @@ async function initSend(
       if (obj.status === 1 && found === -1) {
         invitationMdl.create(obj, (err, res) => {
           if (err || !res) {
-            storeErr("", `Invite Store in DB Failed: ${JSON.stringify(obj)}`);
-            io.to(reqBody.myHold).emit("write", {
-              show: "Something went wrong for: ",
+            storeErr('', `Invite Store in DB Failed: ${JSON.stringify(obj)}`);
+            io.to(reqBody.myHold).emit('write', {
+              show: 'Something went wrong for: ',
               status: [obj.email, 2],
             });
-            io.to(reqBody.myHold).emit("notify", {
-              type: "e",
-              msg: "Technical Issues Detected: See mail queue writer.<br>Rest - In progress",
+            io.to(reqBody.myHold).emit('notify', {
+              type: 'e',
+              msg: 'Technical Issues Detected: See mail queue writer.<br>Rest - In progress',
             });
             // Terminate process show status
             obj.status = 2;
@@ -225,12 +225,12 @@ async function initSend(
       return [obj.email, obj.status];
     })
     .catch((err) => {
-      storeErr("Mail Error", err);
-      io.to(reqBody.myHold).emit("notify", {
-        type: "e",
-        msg: "Mailing Complete : an Issue terminated the process in mid.",
+      storeErr('Mail Error', err);
+      io.to(reqBody.myHold).emit('notify', {
+        type: 'e',
+        msg: 'Mailing Complete : an Issue terminated the process in mid.',
       });
-      io.to(reqBody.myHold).emit("cancelRest");
+      io.to(reqBody.myHold).emit('cancelRest');
     });
 }
 async function initiateMail(
@@ -244,16 +244,16 @@ async function initiateMail(
 ) {
   const nextStack = (mailResp) => {
     // Process Mail Response
-    io.to(reqBody.myHold).emit("mailStatus", mailResp);
+    io.to(reqBody.myHold).emit('mailStatus', mailResp);
     for (let i = 0; i < mailResp.length; i++) {
       const each = mailResp[i];
       // Stop Process if sending failed from server side
       if (each[1] !== 1) {
-        io.to(reqBody.myHold).emit("notify", {
-          type: "e",
-          msg: "Mailing Complete : an Issue terminated the process in mid.",
+        io.to(reqBody.myHold).emit('notify', {
+          type: 'e',
+          msg: 'Mailing Complete : an Issue terminated the process in mid.',
         });
-        io.to(reqBody.myHold).emit("cancelRest");
+        io.to(reqBody.myHold).emit('cancelRest');
         return false;
       }
     }
@@ -273,9 +273,9 @@ async function initiateMail(
         );
       });
     } else
-      io.to(reqBody.myHold).emit("notify", {
-        type: "s",
-        msg: "Mailing Complete.",
+      io.to(reqBody.myHold).emit('notify', {
+        type: 's',
+        msg: 'Mailing Complete.',
       });
   };
   //
@@ -299,28 +299,28 @@ async function requestAccessToken(req, reqBody, next) {
   const tempClient = oAuth2Client;
   tempClient.setCredentials({ refresh_token: reqBody.token });
   //
-  let accessToken = "";
+  let accessToken = '';
   try {
     accessToken = await tempClient.getAccessToken();
   } catch (error) {
-    if (error.response.data.error === "invalid_grant")
+    if (error.response.data.error === 'invalid_grant')
       storeErr(
         req,
         `Unable to get access token for Invitation Mailer Account -: ${reqBody.from}`
       );
     else storeErr(req, error);
-    io.to(reqBody.myHold).emit("cancelRest");
+    io.to(reqBody.myHold).emit('cancelRest');
     return next(
       createErr.Unauthorized(
-        "Mailer A/C Authentication Failed.<br>Contact admnistrator to know how to fix."
+        'Mailer A/C Authentication Failed.<br>Contact admnistrator to know how to fix.'
       )
     );
   }
   //
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
-      type: "OAuth2",
+      type: 'OAuth2',
       user: reqBody.from,
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
@@ -331,12 +331,12 @@ async function requestAccessToken(req, reqBody, next) {
   return transporter;
 }
 //
-invRouter.post("/mail", async (req, res, next) => {
+invRouter.post('/mail', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
         createErr.Unauthorized(
-          "Admin not Logged In.<br>Please refresh this Page and Login"
+          'Admin not Logged In.<br>Please refresh this Page and Login'
         )
       );
     //
@@ -344,7 +344,7 @@ invRouter.post("/mail", async (req, res, next) => {
     //
     const resp = await invitationMdl.find(
       { for: reqBody.passcode },
-      "email token"
+      'email token'
     );
     if (resp) {
       const outboxList = [],
@@ -375,13 +375,13 @@ invRouter.post("/mail", async (req, res, next) => {
           reqBody.token ? 1 : 10 // set number of mails to push in one go
         );
         res.send({
-          msg: "Mailing Initiated : Look for notifications and mail Queue writer for updates.",
+          msg: 'Mailing Initiated : Look for notifications and mail Queue writer for updates.',
         });
-      } else return next(createErr.BadRequest("Empty Invitation List"));
+      } else return next(createErr.BadRequest('Empty Invitation List'));
     } else
       return next(
         createErr.InternalServerError(
-          "Something went wrong.<br>Retry after sometime."
+          'Something went wrong.<br>Retry after sometime.'
         )
       );
   } catch (error) {
@@ -390,19 +390,19 @@ invRouter.post("/mail", async (req, res, next) => {
     next(error);
   }
 });
-invRouter.post("/allInvites", async (req, res, next) => {
+invRouter.post('/allInvites', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
         createErr.Unauthorized(
-          "Admin not Logged In.<br>Please refresh this Page and Login"
+          'Admin not Logged In.<br>Please refresh this Page and Login'
         )
       );
     //
     const reqBody = await passcodeV.validateAsync(req.body);
-    const result = await invitationMdl.find({ for: reqBody.passcode }, "email");
+    const result = await invitationMdl.find({ for: reqBody.passcode }, 'email');
     if (result && result.length) res.send({ data: result });
-    else next(createErr.NotFound("No Invitations Found"));
+    else next(createErr.NotFound('No Invitations Found'));
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -410,7 +410,7 @@ invRouter.post("/allInvites", async (req, res, next) => {
   }
 });
 //
-invRouter.get("/myAuth", async (req, res) => {
+invRouter.get('/myAuth', async (req, res) => {
   try {
     if (isUserLogged(req)) {
       let redirect = encodeURIComponent(req.originalUrl);
@@ -431,7 +431,7 @@ invRouter.get("/myAuth", async (req, res) => {
     const link = `/test?passcode=${param.passcode}`;
     invitationMdl.findOne(
       { for: param.passcode, email: param.email },
-      "token",
+      'token',
       (err, record) => {
         if (err || !record) {
           if (err) storeErr(req, error);
@@ -442,7 +442,7 @@ invRouter.get("/myAuth", async (req, res) => {
           if (record.token === param.myAuthHash) {
             credentialsMdl.findOne(
               { email: param.email },
-              "uname name img",
+              'uname name img',
               (err, resp) => {
                 // Login and Redirect
                 if (err)
@@ -462,9 +462,9 @@ invRouter.get("/myAuth", async (req, res) => {
                   );
                   res.redirect(link);
                 } else {
-                  directSignUp(req, param.email, "", "", "Invitation SignUp")
+                  directSignUp(req, param.email, '', '', 'Invitation SignUp')
                     .then(() => {
-                      processSignIn(req, res, param.email, "", "", "", 1);
+                      processSignIn(req, res, param.email, '', '', '', 1);
                       res.redirect(`/test?passcode=${param.passcode}&ds=true`);
                     })
                     .catch(() => {
@@ -475,7 +475,7 @@ invRouter.get("/myAuth", async (req, res) => {
               }
             );
           } else {
-            storeErr(req, "Auth Key Mismatch" + req.originalUrl);
+            storeErr(req, 'Auth Key Mismatch' + req.originalUrl);
             res.send(
               `<center><h1 style="color: orangered;font-family: monospace;">Failed to Verify Key<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`
             );
@@ -491,7 +491,7 @@ invRouter.get("/myAuth", async (req, res) => {
   }
 });
 // Unsubsctibe
-invRouter.get("/unsub", async (req, res) => {
+invRouter.get('/unsub', async (req, res) => {
   try {
     let param;
     try {
@@ -509,7 +509,7 @@ invRouter.get("/unsub", async (req, res) => {
     }
     invitationMdl.findOne(
       { for: param.passcode, email: param.email },
-      "token",
+      'token',
       (err, record) => {
         const msg =
           '<center><h1 style="color: orangered;font-family: monospace;">Unable to Authenticate.<br>Nothing to worry<br>you can reach us on our WhatsApp 8529493017, your request will be processed.</h1></center>';
@@ -518,12 +518,12 @@ invRouter.get("/unsub", async (req, res) => {
           res.send(msg);
         } else {
           if (record.token === param.myAuthHash) {
-            param.userAgent = req.headers["user-agent"];
-            param.ip = req.headers["x-forwarded-for"] || req.ip;
+            param.userAgent = req.headers['user-agent'];
+            param.ip = req.headers['x-forwarded-for'] || req.ip;
             invUnSubMdl.create(param, (err, record) => {
               if (err || !record) {
                 storeErr(
-                  "",
+                  '',
                   `invite un-sub Store in DB Failed: ${JSON.stringify(obj)}`
                 );
                 res.send(msg);
@@ -535,7 +535,7 @@ invRouter.get("/unsub", async (req, res) => {
           } else {
             storeErr(
               req,
-              "inv-unsubscribe auth-Key mismatch " + req.originalUrl
+              'inv-unsubscribe auth-Key mismatch ' + req.originalUrl
             );
             res.send(msg);
           }

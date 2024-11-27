@@ -1,12 +1,12 @@
-const mailer = require("./mailer");
+const mailer = require('./mailer');
 //
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 const saltRounds = 10;
 //
-const { credentialsMdl } = require("./helpers/schemaColl");
+const { credentialsMdl } = require('./helpers/schemaColl');
 //
 function genRandomPass(email) {
-  const signs = "@#%&";
+  const signs = '@#%&';
   let pass =
     email.charAt(0).toUpperCase() + Math.random().toString(36).slice(-5);
   const rndmSign = signs.charAt(Math.floor(Math.random() * 4));

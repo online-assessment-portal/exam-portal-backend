@@ -1,9 +1,9 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 //
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 //
-const createErr = require("http-errors");
+const createErr = require('http-errors');
 // Compiler
 const accessToken = process.env.Access_Token;
 const endpoint = process.env.ENDPOINT;
@@ -18,23 +18,23 @@ function sleep(ins) {
   });
 }
 //
-const { URLSearchParams } = require("url");
+const { URLSearchParams } = require('url');
 // Shpere Engine Error Handler
 function seErrHandler(err) {
   const statusCode = res.status;
-  storeErr("", err);
+  storeErr('', err);
   if (statusCode == 401)
-    createErr.BadRequest("Invalid Access<br>Inform Test Incharge");
+    createErr.BadRequest('Invalid Access<br>Inform Test Incharge');
   else if (statusCode == 402)
     createErr.BadRequest(
-      "Unable to create submission.<br>Retry after few minutes",
+      'Unable to create submission.<br>Retry after few minutes'
     );
-  else if (statusCode == 403) createErr.BadRequest("Access Denied");
+  else if (statusCode == 403) createErr.BadRequest('Access Denied');
   else if (statusCode == 404)
     createErr.BadRequest("Code doesn't exist.<br>Submission mismatched");
   else if (statusCode == 400)
-    createErr.BadRequest("Bad Request<br>Inform Test Incharge");
-  else createErr.BadRequest("Something went wrong.<br>Inform Test Incharge");
+    createErr.BadRequest('Bad Request<br>Inform Test Incharge');
+  else createErr.BadRequest('Something went wrong.<br>Inform Test Incharge');
 }
 function getSubmissionStream(submissionId, stream) {
   return new Promise((resolve) => {
@@ -49,7 +49,7 @@ function getSubmissionStream(submissionId, stream) {
       })
       .then((streamTxt) => resolve(streamTxt))
       .catch(() => {
-        createErr.BadRequest("Unable to submit your codes");
+        createErr.BadRequest('Unable to submit your codes');
         resolve();
       });
   });
@@ -57,15 +57,15 @@ function getSubmissionStream(submissionId, stream) {
 function intiateStreamCheck(submissionId, streams, obj) {
   return new Promise((resolve) => {
     let stream;
-    if (streams.error) stream = "error";
-    else if (streams.cmpinfo) stream = "cmpinfo";
-    else if (streams.output) stream = "output";
+    if (streams.error) stream = 'error';
+    else if (streams.cmpinfo) stream = 'cmpinfo';
+    else if (streams.output) stream = 'output';
     else {
-      obj.output += "No Output and No Errors";
+      obj.output += 'No Output and No Errors';
       resolve();
     }
     getSubmissionStream(submissionId, stream).then((streamResp) => {
-      if (stream === "error") obj.err += streamResp;
+      if (stream === 'error') obj.err += streamResp;
       else obj.output += streamResp;
       resolve();
     });
@@ -93,7 +93,7 @@ function getSubmission(submissionId, extraSleep, obj) {
             else sleepFor = 0.5;
           } else sleepFor = 3;
           sleep(sleepFor).then(() =>
-            getSubmission(submissionId, 0, obj).then(() => resolve()),
+            getSubmission(submissionId, 0, obj).then(() => resolve())
           );
         } else if (response.executing === false) {
           obj.time = response.result.time;
@@ -101,70 +101,70 @@ function getSubmission(submissionId, extraSleep, obj) {
           if (statusCode === 15) {
             const streams = response.result.streams;
             intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve(),
+              resolve()
             );
           } else if (statusCode === 11) {
             obj.err += `compilation error - ${response.result.signal_desc}\n`;
             const streams = response.result.streams;
             intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve(),
+              resolve()
             );
           } else if (statusCode === 12) {
             obj.err += `runtime error - ${response.result.signal_desc}\n`;
             const streams = response.result.streams;
             intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve(),
+              resolve()
             );
           } else if (statusCode === 13) {
-            obj.err += "Time-limit exceeded";
+            obj.err += 'Time-limit exceeded';
           } else if (statusCode === 17) {
-            obj.err += "memory limit exceeded";
+            obj.err += 'memory limit exceeded';
             resolve();
           } else if (statusCode === 19) {
-            obj.err += "illegal system call";
+            obj.err += 'illegal system call';
             resolve();
           } else if (statusCode === 20) {
-            obj.err += "internal error";
+            obj.err += 'internal error';
             resolve();
           } else {
-            obj.err += "internal server error";
+            obj.err += 'internal server error';
             resolve();
           }
         } else {
-          obj.err += "Server Error - Check for Errors in your code";
+          obj.err += 'Server Error - Check for Errors in your code';
           resolve();
         }
       })
       .catch((err) => {
-        storeErr("", err);
-        createErr.InternalServerError("Unable to submit your codes");
+        storeErr('', err);
+        createErr.InternalServerError('Unable to submit your codes');
         resolve();
       });
   });
 }
-const { compilerV } = require("./helpers/joiSchema");
-const { storeErr } = require("./helpers/common");
-router.post("/cV1/", async (req, res, next) => {
+const { compilerV } = require('./helpers/joiSchema');
+const { storeErr } = require('./helpers/common');
+router.post('/cV1/', async (req, res, next) => {
   try {
     const body = await compilerV.validateAsync(req.body);
     const submissionData = new URLSearchParams();
     //
-    const code = Buffer.from(body.resource, "base64").toString();
-    const input = Buffer.from(body.fordata, "base64").toString();
-    submissionData.append("source", code);
-    submissionData.append("compilerId", body.target);
-    submissionData.append("compilerVersionId", body.useflow);
-    submissionData.append("input", input);
+    const code = Buffer.from(body.resource, 'base64').toString();
+    const input = Buffer.from(body.fordata, 'base64').toString();
+    submissionData.append('source', code);
+    submissionData.append('compilerId', body.target);
+    submissionData.append('compilerVersionId', body.useflow);
+    submissionData.append('input', input);
     // attempt to make submission
     let sleepFor = 0,
       extraSleep = false;
-    const obj = { err: "", output: "" };
+    const obj = { err: '', output: '' };
     if (submissionData.compilerId === 39) {
       sleepFor = 9;
       extraSleep = true;
     } else sleepFor = 2;
     //
-    fetch(submitURL, { method: "POST", body: submissionData })
+    fetch(submitURL, { method: 'POST', body: submissionData })
       .then((res) => {
         if (res.status === 201) return res.json();
         else throw new Error(res.statusText);
@@ -179,7 +179,7 @@ router.post("/cV1/", async (req, res, next) => {
       })
       .catch((err) => {
         storeErr(req, err);
-        return next(createErr.BadRequest("Unable to submit your codes"));
+        return next(createErr.BadRequest('Unable to submit your codes'));
       });
   } catch (error) {
     if (error.isJoi) error.status = 422;
