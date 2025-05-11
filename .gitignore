@@ -128,6 +128,12 @@ public
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+<<<<<<< HEAD
+=======
 
 # Ignore .DS_Store files
 .DS_Store
+<<<<<<< HEAD
+=======
+>>>>>>> dev
+>>>>>>> 54ed68a217cea2b923c1068bdc4ca8c3ea2ef065
