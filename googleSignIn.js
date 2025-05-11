@@ -9,11 +9,15 @@ const { credentialsMdl } = require('./helpers/schemaColl');
 //
 const { google } = require('googleapis');
 // const people = google.people("v1");
-//
+
+const appEnv = process.env.NODE_ENV;
+const isDev = appEnv === 'DEV';
+const frontendDevURL = process.env.FRONTEND_DEV_URL;
+
 const googleConfig = {
-  clientId: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  redirect: process.env.GOOGLE_CLIENT_REDIRECT_URI,
+  clientId: process.env.GOOGLE_CLIENT_ID_SIGN_IN,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET_SIGN_IN,
+  redirect: process.env.GOOGLE_CLIENT_REDIRECT_URI_SIGN_IN,
 };
 const oauth2Client = new google.auth.OAuth2(
   googleConfig.clientId,
@@ -22,15 +26,13 @@ const oauth2Client = new google.auth.OAuth2(
 );
 google.options({ auth: oauth2Client });
 // This scope tells google what information we want to request.
-const defaultScope = ['openid', 'profile', 'email'];
-// Get a url which will open the google sign-in page and request access to the scope provided
-function getConnectionUrl(auth) {
-  return auth.generateAuthUrl({
-    access_type: 'offline',
-    scope: defaultScope,
-  });
-}
-console.log({ getConnectionUrl: getConnectionUrl(oauth2Client) });
+// const defaultScope = ['openid', 'profile', 'email'];
+// console.log({
+//   authUrlGoogleSignIn: oauth2Client.generateAuthUrl({
+//     access_type: 'offline',
+//     scope: defaultScope,
+//   }),
+// });
 //  Extract the email and id of the google account from the "code" parameter.
 async function getGoogleAccountFromCode(code) {
   // get the auth "tokens" from the request
@@ -73,7 +75,7 @@ router.get('/google-login', async (req, res) => {
     if (resp) {
       // Google Account Exists
       processSignIn(req, res, resp.email, resp.uname, resp.name, resp.img, 2);
-      res.redirect('/test');
+      res.redirect((isDev ? frontendDevURL : '') + '/test');
       return false;
     } else {
       // Google Account - SignUp
@@ -94,7 +96,7 @@ router.get('/google-login', async (req, res) => {
             '',
             2
           );
-          res.redirect('/test?&ds=true');
+          res.redirect((isDev ? frontendDevURL : '') + '/test?&ds=true');
           return false;
         })
         .catch((err) => {

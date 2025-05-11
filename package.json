@@ -27,6 +27,7 @@
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.6.3",
     "nodemon": "^2.0.12",
+    "peer": "^1.0.2",
     "rate-limiter-flexible": "^2.2.4",
     "redis": "^3.1.2",
     "socket.io": "^4.1.3",

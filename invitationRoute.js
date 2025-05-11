@@ -39,25 +39,25 @@ const { awsTransporter } = require('./aws_sesMailer');
 //
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
-//
-const CLIENT_ID = process.env.INV_CLIENT_ID,
-  CLIENT_SECRET = process.env.INV_CLIENT_SECRET,
-  REDIRECT_URI = process.env.INV_REDIRECT_URI;
-//
+
+const googleConfig = {
+  clientId: process.env.GOOGLE_CLIENT_ID_MAILER,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET_MAILER,
+  redirect: process.env.GOOGLE_CLIENT_REDIRECT_URI_MAILER,
+};
 const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
+  googleConfig.clientId,
+  googleConfig.clientSecret,
+  googleConfig.redirect
 );
-// const SCOPES = [
-//   // "https://www.googleapis.com/auth/gmail.send",
-//   "https://mail.google.com",
-// ];
-// const authUrl = oAuth2Client.generateAuthUrl({
-//   access_type: "offline",
-//   scope: SCOPES,
+
+const SCOPES = ['https://www.googleapis.com/auth/gmail.send'];
+// console.log({
+//   gmailSendAuthURL: oAuth2Client.generateAuthUrl({
+//     access_type: 'offline',
+//     scope: SCOPES,
+//   }),
 // });
-// console.log({ authUrl });
 invRouter.get('/setupMailer/', async (req, res, next) => {
   try {
     const code = req.query.code;
@@ -67,7 +67,8 @@ invRouter.get('/setupMailer/', async (req, res, next) => {
       return createErr.BadRequest(
         'Mailer Account already exists for this Mail-Id.'
       );
-    const secure = req.csrfToken();
+    // const secure = req.csrfToken();
+    const secure = 'notBeingUsed';
     const sendForm = `<style> form, input { font-size: large; font-family: "Roboto", sans-serif; } input { min-width: 40%; } button { font-size: large; } </style> <form action="/invite/setupAccount" method="post" style="font-size: x-large;"> <label for="name">Sender's Name</label> <input type="text" name="name" id="name" placeholder="Will be displayed in eMail" required> <br><br> <label for="mail">Email Address</label> <input type="email" name="email" id="mail" placeholder="Same as used for account creation" required> <input type="hidden" name="token" value="${tokens.refresh_token}"> <input type="hidden" name="_csrf" value="${secure}"><br> <br> <ul> <li>Please Note these settings are irreversible.</li> <li>Verify before submit</li> <li>Details are case-sensitive</li> <li>If the details do not match, mail will fail to deliver.</li> </ul> <button type="submit">Final Submit</button> </form>`;
     res.send(sendForm);
   } catch (error) {
@@ -296,12 +297,16 @@ async function initiateMail(
   Promise.all(promiseColl).then(nextStack);
 }
 async function requestAccessToken(req, reqBody, next) {
-  const tempClient = oAuth2Client;
-  tempClient.setCredentials({ refresh_token: reqBody.token });
+  const oAuth2Client = new google.auth.OAuth2(
+    googleConfig.clientId,
+    googleConfig.clientSecret,
+    googleConfig.redirect
+  );
+  oAuth2Client.setCredentials({ refresh_token: reqBody.token });
   //
   let accessToken = '';
   try {
-    accessToken = await tempClient.getAccessToken();
+    accessToken = await oAuth2Client.getAccessToken();
   } catch (error) {
     if (error.response.data.error === 'invalid_grant')
       storeErr(
@@ -322,8 +327,8 @@ async function requestAccessToken(req, reqBody, next) {
     auth: {
       type: 'OAuth2',
       user: reqBody.from,
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
+      clientId: googleConfig.clientId,
+      clientSecret: googleConfig.clientSecret,
       refreshToken: reqBody.token,
       accessToken: accessToken,
     },

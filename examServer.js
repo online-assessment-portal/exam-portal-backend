@@ -1,12 +1,18 @@
 const express = require('express');
+const { ExpressPeerServer } = require('peer');
 const path = require('path');
 const createErr = require('http-errors');
 require('dotenv').config();
+const fs = require('fs');
 const appEnv = process.env.NODE_ENV;
 const isDev = appEnv === 'DEV';
 const isProd = appEnv === 'PROD';
 
 const app = express();
+
+const http = require('http');
+const httpServer = http.createServer(app);
+
 if (isDev) {
   const morgan = require('morgan');
   app.use(morgan('dev'));
@@ -122,58 +128,57 @@ db.once('open', function () {
 // app.use(rateLimiterMiddleware);
 //
 app.use(express.static(path.join(__dirname, 'public')));
-//
-//
+
 const extraTask = require('./extraLocalTask');
 app.use('/e', extraTask);
-//
+
 const loginRouter = require('./loginRouter');
 app.use('/login', loginRouter);
-//
+
 const googleSignIn = require('./googleSignIn');
 app.use('/gsign', googleSignIn);
-//
+
 const adminRouter = require('./adminRoute');
 app.use('/admin', adminRouter);
-//
+
 const preResultRouter = require('./preResultRoute');
 app.use('/preResult', preResultRouter);
-//
+
 const { invRouter, setSocketConn } = require('./invitationRoute');
 app.use('/invite', invRouter);
-//
+
 const mailRoute = require('./emailService/emailRoute');
 app.use('/email', mailRoute);
 // EXAMINATION CODING
-//
+
 const {
   isUserLogged,
   isAdminLogged,
   storeErr,
   clearAllCookies,
 } = require('./helpers/common');
-//
+
+const { candRouter, setSocketCand } = require('./candRouter');
+app.use('/cand', candRouter);
+
+const compilerRouter = require('./compiler');
+app.use('/compiler', compilerRouter);
+
+const proctorRouter = require('./proctorRoute');
+app.use('/proctor', proctorRouter);
+
+const headRouter = require('./headRoute');
+app.use('/helloHead', headRouter);
+
+const uploadRoute = require('./imageUpload');
+app.use('/upload', uploadRoute);
+
 function processLogout(req, res) {
   req.session.destroy();
   clearAllCookies(req, res);
   return true;
 }
-//
-const { candRouter, setSocketCand } = require('./candRouter');
-app.use('/cand', candRouter);
-//
-const compilerRouter = require('./compiler');
-app.use('/compiler', compilerRouter);
-//
-const proctorRouter = require('./proctorRoute');
-app.use('/proctor', proctorRouter);
-//
-const headRouter = require('./headRoute');
-app.use('/helloHead', headRouter);
-//
-const uploadRoute = require('./imageUpload');
-app.use('/upload', uploadRoute);
-//
+
 app.get('/logout/', (req, res) => {
   if (processLogout(req, res)) {
     const query = req.query;
@@ -181,7 +186,7 @@ app.get('/logout/', (req, res) => {
     else res.send('Logout Success.');
   } else res.send('Something went wrong.');
 });
-//
+
 app.post('/logout/', (req, res, next) => {
   if (processLogout(req, res)) {
     res.send({ msg: 'Logout Success.' });
@@ -193,7 +198,25 @@ app.post('/logout/', (req, res, next) => {
     );
   }
 });
-//
+
+const peerServer = ExpressPeerServer(httpServer, {
+  path: '/',
+  debug: isDev,
+});
+app.use('/peerjs', peerServer);
+
+const [indexHtmlPre, indexHtmlPost] = (() => {
+  try {
+    const html = fs.readFileSync('./public/index.html', 'utf8');
+    const preHtmlEndIndex = html.indexOf('e">') + 3;
+    const pre = html.slice(0, preHtmlEndIndex);
+    return [pre, '</pre></body></html>'];
+  } catch (err) {
+    console.error('Error reading file:', err);
+    throw new Error('Error reading index.html');
+  }
+})();
+
 app.get('*', (req, res) => {
   const url = req._parsedUrl.pathname.toLowerCase();
   const param = req.query;
@@ -218,14 +241,10 @@ app.get('*', (req, res) => {
   //
   if (!userInfo) userInfo = { loggedIn: false };
   // const secure = req.csrfToken();
-  const secure = 'sadsadasds6a6a4sd6a4d6a4d86sa4';
+  const secure = 'notBeingUsed';
   userInfo.token = secure;
   //
-  res.send(
-    `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"/><meta name="description" content="New Generation Advanced Online Examination Portal.An easy and most convenient platform for Online assessment of candidates. Offering best-in-class with its classic and eye-soothing design and all that with a guarantee of being most affordable in the whole industry."/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"><link rel="manifest" href="/site.webmanifest"><title>Shred Test</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" crossorigin="anonymous"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link href="https://fonts.googleapis.com/css2?family=Caveat&family=Noto+Sans+JP&family=Roboto&display=swap" rel="stylesheet"/><link href="/static/css/main.e0f041dc.chunk.css" rel="stylesheet"></head><body><noscript><center style="font-family:'Noto Sans JP',sans-serif"><h1 style="text-align:center">Please Enable JavaScript of your Browser</h1><ul style="text-align:left"><p>Try for following Options see if anyone of them works for you -:<br/>You are facing this condition because your browser settings were altered and that is not allowing the Test to RUN.</p><li>Open Site Settings and Reset Settings for this website.</li><li>Clean Browser Caches and Temporary Files.</li><li>Reset Browser.</li><li>Clean Uninstall and re-install your Browser.</li></ul></center></noscript><div id="root"></div><pre id="userInfo" style="display:none">${JSON.stringify(
-      userInfo
-    )}</pre><script nonce="ekp3ldxrt5qi">!function(e){function r(r){for(var n,a,p=r[0],l=r[1],f=r[2],c=0,s=[];c<p.length;c++)a=p[c],Object.prototype.hasOwnProperty.call(o,a)&&o[a]&&s.push(o[a][0]),o[a]=0;for(n in l)Object.prototype.hasOwnProperty.call(l,n)&&(e[n]=l[n]);for(i&&i(r);s.length;)s.shift()();return u.push.apply(u,f||[]),t()}function t(){for(var e,r=0;r<u.length;r++){for(var t=u[r],n=!0,p=1;p<t.length;p++){var l=t[p];0!==o[l]&&(n=!1)}n&&(u.splice(r--,1),e=a(a.s=t[0]))}return e}var n={},o={1:0},u=[];function a(r){if(n[r])return n[r].exports;var t=n[r]={i:r,l:!1,exports:{}};return e[r].call(t.exports,t,t.exports,a),t.l=!0,t.exports}a.m=e,a.c=n,a.d=function(e,r,t){a.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:t})},a.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},a.t=function(e,r){if(1&r&&(e=a(e)),8&r)return e;if(4&r&&"object"==typeof e&&e&&e.__esModule)return e;var t=Object.create(null);if(a.r(t),Object.defineProperty(t,"default",{enumerable:!0,value:e}),2&r&&"string"!=typeof e)for(var n in e)a.d(t,n,function(r){return e[r]}.bind(null,n));return t},a.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(r,"a",r),r},a.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},a.p="/";var p=this.webpackJsonpreactapp=this.webpackJsonpreactapp||[],l=p.push.bind(p);p.push=r,p=p.slice();for(var f=0;f<p.length;f++)r(p[f]);var i=l;t()}([])</script><script src="/static/js/2.73b03c72.chunk.js"></script><script src="/static/js/main.ec8720d1.chunk.js"></script></body></html>`
-  );
+  res.send(`${indexHtmlPre}${JSON.stringify(userInfo)}${indexHtmlPost}`);
 });
 // Error out if no Router Exists
 app.use(async (req, res, next) => {
@@ -246,22 +265,21 @@ app.use((err, req, res, next) => {
     .status(err.status || 500)
     .send({ error: { status: err.status || 500, message: showErr } });
 });
-//
+
 process.env.TZ = 'Asia/Kolkata';
-//
-const http = require('http');
-const httpServer = http.Server(app);
-//
-// const io = require("socket.io")(httpServer);
-const io = require('socket.io')(httpServer, {
-  cors: {
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST'],
-  },
-});
-//
+
+const socketConnectionParamObj = isDev
+  ? {
+      cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+      },
+    }
+  : {};
+const io = require('socket.io')(httpServer, socketConnectionParamObj);
+
 const { joinModel } = require('./helpers/schemaColl');
-//
+
 io.on('connection', (socket) => {
   // send socket connnection to invitation Route
   setSocketConn(io);
@@ -309,7 +327,7 @@ io.on('connection', (socket) => {
     io.to(socketId).emit('endTest');
   });
 });
-//
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, function () {
   console.log(`Server Running on Port ${PORT}`);
