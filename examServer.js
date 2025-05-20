@@ -204,10 +204,14 @@ const peerServer = ExpressPeerServer(httpServer, {
   debug: isDev,
 });
 app.use('/peerjs', peerServer);
-
+/**
+rm -rf ./../exam-portal-backend/public/*
+mv build/* ./../exam-portal-backend/public
+ */
+// mv ./public/index.html ./
 const [indexHtmlPre, indexHtmlPost] = (() => {
   try {
-    const html = fs.readFileSync('./public/index.html', 'utf8');
+    const html = fs.readFileSync('./index.html', 'utf8');
     const preHtmlEndIndex = html.indexOf('e">') + 3;
     const pre = html.slice(0, preHtmlEndIndex);
     return [pre, '</pre></body></html>'];
@@ -232,6 +236,7 @@ app.get('*', (req, res) => {
       req.session.email = sCookies.invReg || sCookies.gsign;
     }
     userInfo = isUserLogged(req, 1);
+    console.log({ userInfo });
     if (userInfo === false) userInfo = { loggedIn: false };
     //
     if (userInfo.loggedIn && param.ds) userInfo.ds = true;
