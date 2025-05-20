@@ -62,6 +62,8 @@ router.get('/google-login', async (req, res) => {
         '<center><h1 style="color: orangered;font-family: monospace;">You were loggedIn previously.<br>Please proceed legally.</h1></center>'
       );
     const query = req.query;
+    console.log(query);
+    console.log(query.code);
     const googleUserData = await getGoogleAccountFromCode(query.code);
     //
     if (!googleUserData.email) {

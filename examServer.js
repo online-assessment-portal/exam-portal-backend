@@ -236,7 +236,6 @@ app.get('*', (req, res) => {
       req.session.email = sCookies.invReg || sCookies.gsign;
     }
     userInfo = isUserLogged(req, 1);
-    console.log({ userInfo });
     if (userInfo === false) userInfo = { loggedIn: false };
     //
     if (userInfo.loggedIn && param.ds) userInfo.ds = true;
