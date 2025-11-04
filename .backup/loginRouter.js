@@ -2,12 +2,7 @@ const express = require('express');
 const router = express.Router();
 //
 const createErr = require('http-errors');
-const {
-  cookieObj,
-  storeErr,
-  processSignIn,
-  isUserLogged,
-} = require('./helpers/common');
+const { cookieObj, storeErr, processSignIn, isUserLogged } = require('../helpers/common');
 //
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -18,17 +13,11 @@ async function verifyPassword(pass, hash) {
   else return false;
 }
 //
-const {
-  otpEmailV,
-  otpV,
-  signInV,
-  registerAccV,
-  profileV,
-} = require('./helpers/joiSchema');
+const { otpEmailV, otpV, signInV, registerAccV, profileV } = require('../helpers/joiSchema');
 //
-const { credentialsMdl } = require('./helpers/schemaColl');
+const { credentialsMdl } = require('../helpers/schemaColl');
 //
-const mailer = require('./mailer');
+const mailer = require('../mailer');
 //
 //
 const {
@@ -71,8 +60,8 @@ router.post('/signIn/', async (req, res, next) => {
       return next(
         createErr.TooManyRequests(
           'Crossed maximum allowed attempts.<br>Retry-after ' +
-            (show > 1 ? show + ' mins' : retrySecs + ' secs')
-        )
+            (show > 1 ? show + ' mins' : retrySecs + ' secs'),
+        ),
       );
     }
     //
@@ -85,8 +74,8 @@ router.post('/signIn/', async (req, res, next) => {
         storeErr(req, `Password Verification Failed: ${findRes.email}`);
         return next(
           createErr.InternalServerError(
-            'Something went wrong: Error encountered.<br>Sorry for the inconvienience caused.'
-          )
+            'Something went wrong: Error encountered.<br>Sorry for the inconvienience caused.',
+          ),
         );
       } else if (status === true) {
         // Delete Failure Couting for unameIP only
@@ -96,20 +85,15 @@ router.post('/signIn/', async (req, res, next) => {
         }
         //
         // const token = await signAccessToken(findRes.uname);
-        processSignIn(
-          req,
-          res,
-          findRes.email,
-          findRes.uname,
-          findRes.name,
-          findRes.img
-        ).then((userInfo) => {
-          const obj = {
-            status: 200,
-            userInfo: userInfo,
-          };
-          res.send(obj);
-        });
+        processSignIn(req, res, findRes.email, findRes.uname, findRes.name, findRes.img).then(
+          userInfo => {
+            const obj = {
+              status: 200,
+              userInfo: userInfo,
+            };
+            res.send(obj);
+          },
+        );
       } else {
         // Consume one Failed Attempt for both
         await Promise.all([
@@ -121,8 +105,8 @@ router.post('/signIn/', async (req, res, next) => {
           createErr.Unauthorized(
             `Invalid Username/Password.<br>${
               failsIP ? failsIP.remainingPoints - 1 : 4
-            } attempts left`
-          )
+            } attempts left`,
+          ),
         );
       }
     } else {
@@ -132,8 +116,8 @@ router.post('/signIn/', async (req, res, next) => {
         createErr.Unauthorized(
           `Invalid Username/Password.<br>${
             failsIP ? failsIP.remainingPoints - 1 : 4
-          } attempts left`
-        )
+          } attempts left`,
+        ),
       );
     }
   } catch (error) {
@@ -166,8 +150,8 @@ router.post('/otp_auth/', async (req, res, next) => {
       return next(
         createErr.TooManyRequests(
           'Crossed maximum allowed attempts.<br>Retry-after ' +
-            (show > 1 ? show + ' mins' : retrySecs + ' secs')
-        )
+            (show > 1 ? show + ' mins' : retrySecs + ' secs'),
+        ),
       );
     }
     //
@@ -175,8 +159,8 @@ router.post('/otp_auth/', async (req, res, next) => {
       if (!req.session.otp)
         return next(
           createErr.BadRequest(
-            'Duplicate Request / Request Expired.<br>Refresh this Page and retry.'
-          )
+            'Duplicate Request / Request Expired.<br>Refresh this Page and retry.',
+          ),
         );
       // update number of verification attempts
       await otpVerifyLimiter.consume(myIP);
@@ -190,10 +174,7 @@ router.post('/otp_auth/', async (req, res, next) => {
         delete req.session.otp;
         req.session.otpVerify = true;
         // Reset on successful authorisation
-        await Promise.all([
-          otpVerifyLimiter.delete(myIP),
-          otpMailLimiter.delete(myIP),
-        ]);
+        await Promise.all([otpVerifyLimiter.delete(myIP), otpMailLimiter.delete(myIP)]);
         //
         res.send(obj);
       } else {
@@ -201,7 +182,7 @@ router.post('/otp_auth/', async (req, res, next) => {
           req,
           `OTP Mismatch: was ${req.session.otp} entered ${result.otp} for ${
             result.isReset ? 'Reset' : 'SignUp'
-          }`
+          }`,
         );
         return next(createErr.Conflict('OTP Mismatch - Verification Failed.'));
       }
@@ -216,17 +197,15 @@ router.post('/otp_auth/', async (req, res, next) => {
         // in case of signup make error saying account already exists
         if (!result.isReset)
           return next(
-            createErr.Conflict(
-              'Account already exists for this e-Mail.<br>Please SignIn.'
-            )
+            createErr.Conflict('Account already exists for this e-Mail.<br>Please SignIn.'),
           );
       } else if (result.isReset) {
         // Account doesn't exists
         // in case of reset error out saying no account exists
         return next(
           createErr.Conflict(
-            'No Account exists for this e-Mail/username.<br>Please Create an Account.'
-          )
+            'No Account exists for this e-Mail/username.<br>Please Create an Account.',
+          ),
         );
       }
       const otp = Math.floor(100000 + Math.random() * 900000);
@@ -255,20 +234,13 @@ router.post('/register_Acc/', async (req, res, next) => {
   if (!req.session.sentTo) {
     storeErr(req, `Duplicate Request ${body.isReset ? 'Reset' : 'SignUp'}`);
     return next(
-      createErr.BadRequest(
-        'Duplicate Request / Request Expired.<br>Refresh this Page and retry.'
-      )
+      createErr.BadRequest('Duplicate Request / Request Expired.<br>Refresh this Page and retry.'),
     );
   }
   if (!req.session.otpVerify) {
-    storeErr(
-      req,
-      `Trying to ${body.isReset ? 'Reset' : 'SignUp'} without Verification`
-    );
+    storeErr(req, `Trying to ${body.isReset ? 'Reset' : 'SignUp'} without Verification`);
     return next(
-      createErr.BadRequest(
-        'Duplicate Request / Request Expired.<br>Refresh this Page and retry.'
-      )
+      createErr.BadRequest('Duplicate Request / Request Expired.<br>Refresh this Page and retry.'),
     );
   }
   try {
@@ -279,7 +251,7 @@ router.post('/register_Acc/', async (req, res, next) => {
       if (result.isReset) {
         const response = await credentialsMdl.findOneAndUpdate(
           { email: email },
-          { password: hashedPswd }
+          { password: hashedPswd },
         );
         if (response) {
           if (req.session.otpVerify) delete req.session.otpVerify;
@@ -287,22 +259,17 @@ router.post('/register_Acc/', async (req, res, next) => {
           // const token = await signAccessToken(response.uname);
           delete req.session.sentTo;
           const obj = { status: 200 };
-          processSignIn(
-            req,
-            res,
-            response.email,
-            response.uname,
-            response.name,
-            response.img
-          ).then((userInfo) => {
-            obj.userInfo = userInfo;
-            res.send(obj);
-          });
+          processSignIn(req, res, response.email, response.uname, response.name, response.img).then(
+            userInfo => {
+              obj.userInfo = userInfo;
+              res.send(obj);
+            },
+          );
         } else
           return next(
             createErr.InternalServerError(
-              'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.'
-            )
+              'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.',
+            ),
           );
       } else {
         const accData = {
@@ -316,30 +283,23 @@ router.post('/register_Acc/', async (req, res, next) => {
           else storeErr(req, `Account Created without Verification: ${email}`);
           delete req.session.sentTo;
           const obj = { status: 200 };
-          processSignIn(req, res, response.email, '', '', '').then(
-            (userInfo) => {
-              obj.userInfo = userInfo;
-              res.send(obj);
-            }
-          );
+          processSignIn(req, res, response.email, '', '', '').then(userInfo => {
+            obj.userInfo = userInfo;
+            res.send(obj);
+          });
         } else
           return next(
             createErr.InternalServerError(
-              'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.'
-            )
+              'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.',
+            ),
           );
       }
     } else {
-      storeErr(
-        req,
-        `${
-          result.isReset ? 'Reset' : 'SignUp'
-        } Error: Hash Password generate Failed.`
-      );
+      storeErr(req, `${result.isReset ? 'Reset' : 'SignUp'} Error: Hash Password generate Failed.`);
       return next(
         createErr.ServiceUnavailable(
-          'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.'
-        )
+          'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.',
+        ),
       );
     }
   } catch (error) {
@@ -352,14 +312,10 @@ router.post('/updateProfile/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
-      return next(
-        createErr.Unauthorized('User not logged in.<br>Please Login.')
-      );
+      return next(createErr.Unauthorized('User not logged in.<br>Please Login.'));
     }
     const result = await profileV.validateAsync(req.body);
-    const status = await credentialsMdl
-      .updateOne({ email: email }, result)
-      .lean();
+    const status = await credentialsMdl.updateOne({ email: email }, result).lean();
     //
     if (status && status.ok) {
       res.cookie('uname', result.uname, cookieObj);
@@ -376,11 +332,7 @@ router.post('/updateProfile/', async (req, res, next) => {
       obj.notify = notify;
       res.send(obj);
     } else
-      return next(
-        createErr.ServiceUnavailable(
-          'Something went wrong...<br>Retry after sometime.'
-        )
-      );
+      return next(createErr.ServiceUnavailable('Something went wrong...<br>Retry after sometime.'));
   } catch (error) {
     if (
       error.code === 11000 &&
@@ -391,8 +343,8 @@ router.post('/updateProfile/', async (req, res, next) => {
     )
       return next(
         createErr.UnavailableForLegalReasons(
-          'this username is already occupied by someone else.<br>Look for something more unique.'
-        )
+          'this username is already occupied by someone else.<br>Look for something more unique.',
+        ),
       );
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);

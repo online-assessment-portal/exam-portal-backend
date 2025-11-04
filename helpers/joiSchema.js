@@ -12,13 +12,26 @@ const Joi = require('joi');
  * CSRF Token Schema
  * Validates the CSRF token for security purposes.
  */
-const tokenSch = {
-  _csrf: Joi.string().min(10).max(100).trim().required().messages({
+const csrfTokenSchema = {
+  _csrf: Joi.string().min(10).max(100).trim().messages({
     'string.empty': 'CSRF token is required for security.',
     'string.min': 'CSRF token must be at least 10 characters.',
     'string.max': 'CSRF token cannot exceed 100 characters.',
     'any.required': 'CSRF token is mandatory.',
   }),
+};
+
+const jwtTokenSchema = {
+  token: Joi.string()
+    .pattern(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/)
+    .required()
+    .label('JWT Token')
+    .messages({
+      'string.base': '"token" should be a type of string',
+      'string.empty': '"token" cannot be empty',
+      'string.pattern.base': '"token" must be a valid JWT',
+      'any.required': '"token" is required',
+    }),
 };
 
 /**
@@ -75,9 +88,7 @@ const pswdSch = {
     .min(6)
     .max(16)
     .trim()
-    .pattern(
-      /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?=.*[\W|_])[a-zA-Z0-9!@#$%^&*]{6,16}$/
-    )
+    .pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?=.*[\W|_])[a-zA-Z0-9!@#$%^&*]{6,16}$/)
     .required()
     .messages({
       'string.pattern.base':
@@ -93,20 +104,13 @@ const pswdSch = {
  * Validates test passcode as alphanumeric, uppercase, 9-10 characters.
  */
 const passcodeSch = {
-  passcode: Joi.string()
-    .alphanum()
-    .min(9)
-    .max(10)
-    .trim()
-    .uppercase()
-    .required()
-    .messages({
-      'string.alphanum': 'Passcode must contain only letters and numbers.',
-      'string.min': 'Passcode must be at least 9 characters long.',
-      'string.max': 'Passcode cannot exceed 10 characters.',
-      'string.uppercase': 'Passcode must be in uppercase.',
-      'any.required': 'Passcode is required to identify the exam.',
-    }),
+  passcode: Joi.string().alphanum().min(9).max(10).trim().uppercase().required().messages({
+    'string.alphanum': 'Passcode must contain only letters and numbers.',
+    'string.min': 'Passcode must be at least 9 characters long.',
+    'string.max': 'Passcode cannot exceed 10 characters.',
+    'string.uppercase': 'Passcode must be in uppercase.',
+    'any.required': 'Passcode is required to identify the exam.',
+  }),
 };
 
 // ==========================================
@@ -119,52 +123,78 @@ const passcodeSch = {
  */
 const emailV = Joi.object(emailSch);
 
-/**
- * OTP Email Validation Schema
- * For requesting OTP via email, with optional reset flag.
- */
-const otpEmailV = Joi.object({
-  ...emailSch,
-  isReset: Joi.boolean().optional(),
-  ...tokenSch,
-});
-
-/**
- * OTP Validation Schema
- * For verifying OTP with email and reset flag.
- */
-const otpV = Joi.object({
-  ...emailSch,
-  ...otpSch,
-  isReset: Joi.boolean().optional(),
-  ...tokenSch,
-});
-
-/**
- * Password Validation Schema
- * For password-only validation.
- */
-const pswdV = Joi.object(pswdSch);
-
-/**
- * Sign In Validation Schema
- * For user login with username, password, and CSRF token.
- */
-const signInV = Joi.object({
-  ...unamSchReq,
-  ...pswdSch,
-  ...tokenSch,
-});
-
-/**
- * Register Account Validation Schema
- * For account registration with password and reset flag.
- */
-const registerAccV = Joi.object({
-  ...pswdSch,
-  isReset: Joi.boolean().optional(),
-  ...tokenSch,
-});
+const AuthValidation = {
+  register: {
+    sendOtpSchema: Joi.object({ ...emailSch }),
+    verifyOtpSchema: Joi.object({ ...emailSch, ...otpSch }),
+    complete: Joi.object({ ...pswdSch, ...jwtTokenSchema }),
+  },
+  reset: {
+    sendOtpSchema: Joi.object({
+      email: Joi.alternatives()
+        .try(
+          Joi.string()
+            .min(3)
+            .max(60)
+            .lowercase()
+            .trim()
+            .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
+          Joi.string().min(3).max(60).trim()
+        )
+        .required()
+        .messages({
+          'alternatives.match': 'Must be a valid email or username.',
+          'string.empty': 'Email or username is required.',
+          'string.min': 'Must be at least 3 characters long.',
+          'string.max': 'Cannot exceed 60 characters.',
+          'any.required': 'Email or username is mandatory.',
+        }),
+    }),
+    verifyOtpSchema: Joi.object({
+      email: Joi.alternatives()
+        .try(
+          Joi.string()
+            .min(3)
+            .max(60)
+            .lowercase()
+            .trim()
+            .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
+          Joi.string().min(3).max(60).trim()
+        )
+        .required()
+        .messages({
+          'alternatives.match': 'Must be a valid email or username.',
+          'string.empty': 'Email or username is required.',
+          'string.min': 'Must be at least 3 characters long.',
+          'string.max': 'Cannot exceed 60 characters.',
+          'any.required': 'Email or username is mandatory.',
+        }),
+      ...otpSch,
+    }),
+    complete: Joi.object({ ...pswdSch, ...jwtTokenSchema }),
+  },
+  signin: Joi.object({
+    email: Joi.alternatives()
+      .try(
+        Joi.string()
+          .min(3)
+          .max(60)
+          .lowercase()
+          .trim()
+          .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
+        Joi.string().min(3).max(60).trim()
+      )
+      .required()
+      .messages({
+        'alternatives.match': 'Must be a valid email or username.',
+        'string.empty': 'Email or username is required.',
+        'string.min': 'Must be at least 3 characters long.',
+        'string.max': 'Cannot exceed 60 characters.',
+        'any.required': 'Email or username is mandatory.',
+      }),
+    ...pswdSch,
+  }),
+};
 
 /**
  * Google Registration Validation Schema
@@ -199,7 +229,7 @@ const profileV = Joi.object({
   sendCand: Joi.boolean().required().messages({
     'any.required': 'Send candidate preference is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -213,7 +243,7 @@ const profileV = Joi.object({
 const adminAuth = Joi.object({
   ...unamSchReq,
   ...pswdSch,
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -256,14 +286,14 @@ const qBankJoi = Joi.object({
   isUpdt: Joi.boolean().required().messages({
     'any.required': 'Update flag is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
  * Passcode Validation Schema
  * For passcode-only validation with CSRF token.
  */
-const passcodeV = Joi.object({ ...passcodeSch, ...tokenSch });
+const passcodeV = Joi.object({ ...passcodeSch, ...csrfTokenSchema });
 
 /**
  * Upload Results Validation Schema
@@ -299,7 +329,7 @@ const uploadResV = Joi.object({
     'string.max': 'Final score cannot exceed 50000 characters.',
     'any.required': 'Final score is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -311,7 +341,7 @@ const getResultStrV = Joi.object({
     'string.max': 'Mail list cannot exceed 50000 characters.',
     'any.required': 'Mail list is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -328,7 +358,7 @@ const uploadRankV = Joi.object({
     'string.max': 'Final rank cannot exceed 100000 characters.',
     'any.required': 'Final rank is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -340,7 +370,7 @@ const excelDnV = Joi.object({
     'string.max': 'HTML content cannot exceed 1000000 characters.',
     'any.required': 'HTML content is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -356,7 +386,7 @@ const showResV = Joi.object({
     'string.max': 'Result data cannot exceed 100000 characters.',
     'any.required': 'Result data is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -382,7 +412,7 @@ const addAdminV = Joi.object({
     'string.max': 'Image upload key cannot exceed 100 characters.',
     'any.required': 'Image upload key is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -429,7 +459,7 @@ const inviteMailV = Joi.object({
     'string.max': 'Queue cannot exceed 50000 characters.',
     'any.required': 'Queue is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -438,18 +468,12 @@ const inviteMailV = Joi.object({
  */
 const inviteAuthObj = {
   ...passcodeSch,
-  myAuthHash: Joi.string()
-    .alphanum()
-    .min(3)
-    .max(30)
-    .trim()
-    .required()
-    .messages({
-      'string.alphanum': 'Auth hash must be alphanumeric.',
-      'string.min': 'Auth hash must be at least 3 characters.',
-      'string.max': 'Auth hash cannot exceed 30 characters.',
-      'any.required': 'Auth hash is required.',
-    }),
+  myAuthHash: Joi.string().alphanum().min(3).max(30).trim().required().messages({
+    'string.alphanum': 'Auth hash must be alphanumeric.',
+    'string.min': 'Auth hash must be at least 3 characters.',
+    'string.max': 'Auth hash cannot exceed 30 characters.',
+    'any.required': 'Auth hash is required.',
+  }),
   ...emailSch,
 };
 
@@ -496,7 +520,7 @@ const invMailAcc = Joi.object({
     'string.max': 'Token cannot exceed 120 characters.',
     'any.required': 'Token is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -513,7 +537,7 @@ const libSelV = Joi.object({
     'string.max': 'Library selection cannot exceed 1500 characters.',
     'any.required': 'Library selection is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -526,7 +550,7 @@ const qsnrV = Joi.object({
     'string.max': 'Response cannot exceed 1500 characters.',
     'any.required': 'Response is required.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -553,7 +577,7 @@ const submitTestV = Joi.object({
   }),
   vData: Joi.string().trim().optional(),
   sSize: Joi.string().trim().optional(),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -576,7 +600,7 @@ const compilerV = Joi.object({
   fordata: Joi.string().min(0).max(2000).trim().allow(null, '').messages({
     'string.max': 'Data cannot exceed 2000 characters.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 /**
@@ -588,7 +612,7 @@ const feedbackV = Joi.object({
   feedback: Joi.string().max(1000).trim().optional().messages({
     'string.max': 'Feedback cannot exceed 1000 characters.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -612,7 +636,7 @@ const contactV = Joi.object({
   msg: Joi.string().empty('').max(500).trim().messages({
     'string.max': 'Message cannot exceed 500 characters.',
   }),
-  ...tokenSch,
+  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -638,11 +662,7 @@ const emailUnSubV = Joi.object({
 });
 
 module.exports = {
-  otpEmailV,
-  otpV,
-  registerAccV,
-  pswdV,
-  signInV,
+  AuthValidation,
   registerGglV,
   profileV,
   adminAuth,

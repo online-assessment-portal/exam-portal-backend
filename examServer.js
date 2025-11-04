@@ -4,11 +4,11 @@ const path = require('path');
 const createErr = require('http-errors');
 require('dotenv').config();
 const fs = require('fs');
-const appEnv = process.env.NODE_ENV;
-const isDev = appEnv === 'DEV';
-const isProd = appEnv === 'PROD';
+
+const { isDev, isProd } = require('./src/config/constants');
 
 const app = express();
+app.set('trust proxy', 1);
 
 const http = require('http');
 const httpServer = http.createServer(app);
@@ -18,7 +18,7 @@ if (isDev) {
   app.use(morgan('dev'));
 
   const cors = require('cors');
-  app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+  app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 }
 
 const helmet = require('helmet');
@@ -58,6 +58,10 @@ app.use(
     },
   })
 );
+
+// Request Tracing Middleware
+const { requestTracer } = require('./src/middleware/requestTracer');
+app.use(requestTracer);
 //
 // app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));
@@ -65,7 +69,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: false }));
 //
 const session = require('express-session');
-const redisClient = require('./helpers/redisConnect');
+const { createRedisClient, closeRedisClient } = require('./src/config/redis');
+// Initialize Redis
+const redisClient = createRedisClient();
 const RedisStore = require('connect-redis')(session);
 app.use(
   session({
@@ -132,14 +138,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 const extraTask = require('./extraLocalTask');
 app.use('/e', extraTask);
 
-const loginRouter = require('./loginRouter');
-app.use('/login', loginRouter);
+const authRouter = require('./src/routes/auth').default;
+app.use('/auth', authRouter);
 
 const googleSignIn = require('./googleSignIn');
 app.use('/gsign', googleSignIn);
 
-const adminRouter = require('./adminRoute');
-app.use('/admin', adminRouter);
+// const adminRouter = require('./adminRoute');
+// app.use('/admin', adminRouter);
 
 const preResultRouter = require('./preResultRoute');
 app.use('/preResult', preResultRouter);
@@ -151,12 +157,7 @@ const mailRoute = require('./emailService/emailRoute');
 app.use('/email', mailRoute);
 // EXAMINATION CODING
 
-const {
-  isUserLogged,
-  isAdminLogged,
-  storeErr,
-  clearAllCookies,
-} = require('./helpers/common');
+const { isUserLogged, isAdminLogged, storeErr, clearAllCookies } = require('./helpers/common');
 
 const { candRouter, setSocketCand } = require('./candRouter');
 app.use('/cand', candRouter);
@@ -221,6 +222,10 @@ const [indexHtmlPre, indexHtmlPost] = (() => {
   }
 })();
 
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is operational' });
+});
+
 app.get('*', (req, res) => {
   const url = req._parsedUrl.pathname.toLowerCase();
   const param = req.query;
@@ -254,28 +259,16 @@ app.get('*', (req, res) => {
 app.use(async (req, res, next) => {
   next(createErr.NotFound());
 });
-// Error Handeler Middleware
-app.use((err, req, res, next) => {
-  let showErr = err.message;
-  if (showErr === 'invalid csrf token')
-    showErr =
-      'Security Token mis-match.<br>Refresh/Reload this Page to create a Secure Channel.';
-  else if (err.name === 'MongoError') {
-    showErr =
-      "Something went wrong.<br>You request couldn't be fulfilled at the moment.<br>Please retry after sometime.";
-    storeErr(req, err);
-  }
-  res
-    .status(err.status || 500)
-    .send({ error: { status: err.status || 500, message: showErr } });
-});
+// Error Handler Middleware
+const errorHandler = require('./src/middleware/globalErrorHandler').default;
+app.use(errorHandler);
 
 process.env.TZ = 'Asia/Kolkata';
 
 const socketConnectionParamObj = isDev
   ? {
       cors: {
-        origin: 'http://localhost:3000',
+        origin: 'http://localhost:5173',
         methods: ['GET', 'POST'],
       },
     }
@@ -297,16 +290,14 @@ io.on('connection', (socket) => {
       data.socketId = socket.id;
       joinModel.create(data, function (err, response) {
         if (err || !response) storeErr('', err);
-        else if (response)
-          socket.to(`${roomId}_admin`).emit('cand-connected', data);
+        else if (response) socket.to(`${roomId}_admin`).emit('cand-connected', data);
       });
     } else socket.to(roomId).emit('newProctor', data);
   });
   socket.on('disconnect', () => {
     joinModel.findOneAndDelete({ socketId: socket.id }, (err, status) => {
       if (err) storeErr('', err);
-      else if (status)
-        socket.to(`${status.passcode}_admin`).emit('cand-disConnected', status);
+      else if (status) socket.to(`${status.passcode}_admin`).emit('cand-disConnected', status);
     });
   });
   //
@@ -336,3 +327,20 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, function () {
   console.log(`Server Running on Port ${PORT}`);
 });
+
+// Graceful shutdown
+const gracefulShutdown = async () => {
+  console.log('🔄 Shutting down gracefully...');
+  try {
+    await closeRedisClient();
+    console.log('Graceful shutdown completed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error.message);
+    process.exit(1);
+  }
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
