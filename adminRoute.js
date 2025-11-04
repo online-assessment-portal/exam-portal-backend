@@ -2,12 +2,7 @@ const express = require('express');
 const router = express.Router();
 //
 const createErr = require('http-errors');
-const {
-  cookieObj,
-  storeErr,
-  isAdminLogged,
-  clearAllCookies,
-} = require('./helpers/common');
+const { cookieObj, storeErr, isAdminLogged, clearAllCookies } = require('./helpers/common');
 //
 const bcrypt = require('bcrypt');
 //
@@ -81,15 +76,12 @@ router.post('/authAdmin/', async (req, res, next) => {
     if (retrySecs > 0)
       return next(
         createErr.TooManyRequests(
-          `Crossed maximum attempts allowed<br>Retry-after ${retrySecs}secs`
-        )
+          `Crossed maximum attempts allowed<br>Retry-after ${retrySecs}secs`,
+        ),
       );
     const consumeBoth = async () => {
       // Consume one Failed Attempt for both
-      await Promise.all([
-        signInLimiter.consume(result.uname),
-        signInLimiterIP.consume(ipUnameKey),
-      ]);
+      await Promise.all([signInLimiter.consume(result.uname), signInLimiterIP.consume(ipUnameKey)]);
     };
     //
     const getAdmin = await adminCredMdl
@@ -123,8 +115,8 @@ router.post('/authAdmin/', async (req, res, next) => {
           createErr.Unauthorized(
             `Invalid Username/Password.<br>${
               failsIP ? failsIP.remainingPoints - 1 : 4
-            } attempts left`
-          )
+            } attempts left`,
+          ),
         );
       }
     } else {
@@ -134,8 +126,8 @@ router.post('/authAdmin/', async (req, res, next) => {
         createErr.Unauthorized(
           `Invalid Username/Password.<br>${
             failsIP ? failsIP.remainingPoints - 1 : 4
-          } attempts left`
-        )
+          } attempts left`,
+        ),
       );
     }
   } catch (error) {
@@ -151,19 +143,14 @@ router.post('/upload_testData/', async (req, res, next) => {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     //
     const body = await qBankJoi.validateAsync(req.body);
     body.admin = uname;
     //
     if (body.isUpdt) {
-      const result = await qBankMdl.updateOne(
-        { passcode: body.passcode },
-        body
-      );
+      const result = await qBankMdl.updateOne({ passcode: body.passcode }, body);
       if (result && result.ok) {
         let msg =
           'Test was Updated Successfully.<br>We recommend reviewing before conducting this Test.';
@@ -172,8 +159,8 @@ router.post('/upload_testData/', async (req, res, next) => {
       } else
         next(
           createErr.InternalServerError(
-            "Something went wrong.<br>If the issue persists don't hesitate to contact us."
-          )
+            "Something went wrong.<br>If the issue persists don't hesitate to contact us.",
+          ),
         );
     } else {
       const response = await qBankMdl.create(body);
@@ -184,8 +171,8 @@ router.post('/upload_testData/', async (req, res, next) => {
       } else
         next(
           createErr.InternalServerError(
-            "Something went wrong.<br>If the issue persists don't hesitate to contact us."
-          )
+            "Something went wrong.<br>If the issue persists don't hesitate to contact us.",
+          ),
         );
     }
   } catch (error) {
@@ -197,8 +184,8 @@ router.post('/upload_testData/', async (req, res, next) => {
         ) {
           return next(
             createErr(
-              'Oops! This Passcode is already being used by some other Test.<br>Please generate another one and Retry.'
-            )
+              'Oops! This Passcode is already being used by some other Test.<br>Please generate another one and Retry.',
+            ),
           );
         }
       }
@@ -213,9 +200,7 @@ router.post('/loadTestData/', async (req, res, next) => {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await passcodeV.validateAsync(req.body);
     const response = await qBankMdl.findOne({ passcode: body.passcode }).lean();
@@ -223,20 +208,15 @@ router.post('/loadTestData/', async (req, res, next) => {
       if (response.admin !== uname)
         return next(
           createErr.Unauthorized(
-            "You don't have sufficient Rights to access Test of some other Organization."
-          )
+            "You don't have sufficient Rights to access Test of some other Organization.",
+          ),
         );
       else {
         delete response._id;
         delete response.__v;
         res.send(response);
       }
-    } else
-      next(
-        createErr.NotFound(
-          "Invalid Passcode.<br>Test with this Passcode doesn't exists."
-        )
-      );
+    } else next(createErr.NotFound("Invalid Passcode.<br>Test with this Passcode doesn't exists."));
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);

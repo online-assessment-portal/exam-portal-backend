@@ -39,19 +39,13 @@ function prepareAndSend(to) {
         const store = { email: to, mailUID };
         sentMailMdl.create(store, (err, res) => {
           if (err || !res) {
-            storeErr(
-              '',
-              `Sent Email store in DB Failed: ${JSON.stringify(store)}`
-            );
+            storeErr('', `Sent Email store in DB Failed: ${JSON.stringify(store)}`);
             reject();
           } else resolve();
         });
       } else reject();
     } catch (err) {
-      storeErr(
-        `AWS Mail Error - ${err.code} - Sending to ${mailObject.to}`,
-        err
-      );
+      storeErr(`AWS Mail Error - ${err.code} - Sending to ${mailObject.to}`, err);
       reject();
     }
   });
@@ -76,10 +70,7 @@ async function regulateQueue(list) {
         });
       })
       .catch(() =>
-        storeErr(
-          '',
-          'Promise.all failure - not all mails were success at regulateQueue'
-        )
+        storeErr('', 'Promise.all failure - not all mails were success at regulateQueue'),
       );
 }
 //

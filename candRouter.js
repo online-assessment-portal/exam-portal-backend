@@ -5,12 +5,7 @@ const createErr = require('http-errors');
 //
 const { storeErr, isUserLogged } = require('./helpers/common');
 //
-const {
-  qBankMdl,
-  responsesMdl,
-  feedbackMdl,
-  credentialsMdl,
-} = require('./helpers/schemaColl');
+const { qBankMdl, responsesMdl, feedbackMdl, credentialsMdl } = require('./helpers/schemaColl');
 //
 
 const myDict = [
@@ -66,9 +61,8 @@ const myDict = [
     'careFlow',
   ],
   indexArr = [
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-    40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
   ];
 function sliceQBank(testObj, qBank) {
   qBank = Buffer.from(qBank).toString('base64');
@@ -141,21 +135,15 @@ function makeDateTimeReadable(recDate, type) {
     return str;
   }
 }
-const {
-  passcodeV,
-  libSelV,
-  qsnrV,
-  submitTestV,
-  feedbackV,
-} = require('./helpers/joiSchema');
+const { passcodeV, libSelV, qsnrV, submitTestV, feedbackV } = require('./helpers/joiSchema');
 candRouter.post('/examInfo/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     }
     //
@@ -167,8 +155,8 @@ candRouter.post('/examInfo/', async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-            )
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+            ),
           );
         } else if (test) {
           let now = Date.now(),
@@ -202,8 +190,8 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                   storeErr(req, err);
                   return next(
                     createErr.InternalServerError(
-                      'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-                    )
+                      'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+                    ),
                   );
                 } else if (cand) {
                   // Update Entry
@@ -211,7 +199,7 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                     { _id: cand._id },
                     {
                       $inc: { entryCtr: 1 },
-                    }
+                    },
                   );
                   //
                   // Calculate EndIn in case of Fixed Duration Test
@@ -221,41 +209,27 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                       cand.firstEntry = test.strtTime;
                     endIn =
                       parseInt(test.dur) * 60 -
-                      Math.trunc(
-                        (now - new Date(cand.firstEntry).getTime()) / 1000
-                      );
+                      Math.trunc((now - new Date(cand.firstEntry).getTime()) / 1000);
                   }
                   if (cand.crntSec === -1) {
                     // Verify if his Test Time is Over in case of Fixed Duration
                     if (test.isFixedDur && endIn <= 0) {
                       const msg = `Time's Up...<br>This Test/Event was of fixed Duration and you have already Appeared for that Time.<br>You started this Test/Event at-: ${makeDateTimeReadable(
                         test.endTime,
-                        1
-                      )}<br>For duration-: ${
-                        test.dur
-                      } minutes<br>Status-: Appeared and Submitted`;
+                        1,
+                      )}<br>For duration-: ${test.dur} minutes<br>Status-: Appeared and Submitted`;
                       return next(createErr.BadRequest(msg));
                     } else
-                      return next(
-                        createErr.BadRequest(
-                          'Already Appeared.<br>Test Submitted.'
-                        )
-                      );
+                      return next(createErr.BadRequest('Already Appeared.<br>Test Submitted.'));
                   }
                   if (cand.status) {
-                    cand.candStatusNull = Buffer.from(cand.status).toString(
-                      'base64'
-                    );
+                    cand.candStatusNull = Buffer.from(cand.status).toString('base64');
                     delete cand.status;
                     //
-                    cand.infoResQRB = Buffer.from(cand.response).toString(
-                      'base64'
-                    );
+                    cand.infoResQRB = Buffer.from(cand.response).toString('base64');
                     delete cand.response;
                     //
-                    cand.trpOSFail = Buffer.from(cand.tcResponse).toString(
-                      'base64'
-                    );
+                    cand.trpOSFail = Buffer.from(cand.tcResponse).toString('base64');
                     delete cand.tcResponse;
                     //
                     cand.myAttempt = cand.cdLangId;
@@ -269,7 +243,7 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                 } else if (endIn < 0) {
                   const show = `Entry Closed at ${makeDateTimeReadable(
                     test.endTime,
-                    1
+                    1,
                   )}.<br>No new Registrations will be accepted.`;
                   return next(createErr.BadRequest(show));
                 } else {
@@ -277,14 +251,9 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                   // If test is of Type Open Test or the User is Invited which can be determined by session data invReg - Register the User
                   if (test.open || invReg) {
                     if (!test.open && invReg !== email) {
-                      storeErr(
-                        req,
-                        `Invitation Mail - ${invReg} and Registration Mail ${email}.`
-                      );
+                      storeErr(req, `Invitation Mail - ${invReg} and Registration Mail ${email}.`);
                       return next(
-                        createErr.BadRequest(
-                          'Invitation Mail and Registration Mail mismatch.'
-                        )
+                        createErr.BadRequest('Invitation Mail and Registration Mail mismatch.'),
                       );
                     }
                     responsesMdl.create(
@@ -292,47 +261,38 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                       (err, created) => {
                         if (err || !created) {
                           if (err) storeErr(req, err);
-                          else
-                            storeErr(
-                              req,
-                              `Failed to Register: ${email} for ${body.passcode}`
-                            );
+                          else storeErr(req, `Failed to Register: ${email} for ${body.passcode}`);
                           return next(
                             createErr.InternalServerError(
-                              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-                            )
+                              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+                            ),
                           );
                         } else {
                           test.Entry = 1;
                           test.crntSec = 0;
                           test.firstEntry = created.firstEntry;
                           //
-                          if (test.isFixedDur)
-                            endIn = parseInt(test.dur) * 60 + startIn;
+                          if (test.isFixedDur) endIn = parseInt(test.dur) * 60 + startIn;
                           //
-                          io.to(`${body.passcode}_admin`).emit(
-                            'newRegistration',
-                            { email: email }
-                          );
+                          io.to(`${body.passcode}_admin`).emit('newRegistration', { email: email });
                           //
                           res.send(processTest(test, startIn, endIn));
                         }
-                      }
+                      },
                     );
                   } else {
                     storeErr(req, `${email} wanted to join ${body.passcode}`);
                     return next(
                       createErr.Unauthorized(
-                        `This Test/Event is of Invite Only in nature.<br>You can join using invitation link only.`
-                      )
+                        `This Test/Event is of Invite Only in nature.<br>You can join using invitation link only.`,
+                      ),
                     );
                   }
                 }
-              }
+              },
             )
             .lean();
-        } else
-          next(createErr.NotFound('No Test/Event exists with this Passcode.'));
+        } else next(createErr.NotFound('No Test/Event exists with this Passcode.'));
       })
       .lean();
   } catch (error) {
@@ -347,8 +307,8 @@ candRouter.post('/storeLibSel', async (req, res, next) => {
     if (!email)
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     //
     const body = await libSelV.validateAsync(req.body);
@@ -361,11 +321,11 @@ candRouter.post('/storeLibSel', async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-            )
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+            ),
           );
         } else res.send({ status: 'Stored' });
-      }
+      },
     );
   } catch (error) {
     if (error.isJoi) error.status = 422;
@@ -380,8 +340,8 @@ candRouter.post('/submitQnr/', async (req, res, next) => {
     if (!email)
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     //
     const body = await qsnrV.validateAsync(req.body);
@@ -394,15 +354,15 @@ candRouter.post('/submitQnr/', async (req, res, next) => {
           if (err) storeErr(req, err);
           return next(
             createErr.InternalServerError(
-              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-            )
+              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+            ),
           );
         } else {
           let msg = 'Questionnaire Submitted.';
           if (response.nModified === 0) msg += '<br>No new modifications.';
           res.send({ notify: msg });
         }
-      }
+      },
     );
   } catch (error) {
     if (error.isJoi) error.status = 422;
@@ -428,8 +388,8 @@ candRouter.post('/submitTest/', async (req, res, next) => {
     if (!email) {
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     }
     //
@@ -443,20 +403,16 @@ candRouter.post('/submitTest/', async (req, res, next) => {
       const i = headers.indexOf('User-Agent');
       if (i >= 0) body.uA = headers[i + 1];
     }
-    responsesMdl.updateOne(
-      { email: email, passcode: body.passcode },
-      body,
-      (err, response) => {
-        if (err || !(response && response.ok)) {
-          if (err) storeErr(req, err);
-          return next(
-            createErr.InternalServerError(
-              'Something went wrong: Error encountered.<br>Sorry for the inconvienience.'
-            )
-          );
-        } else res.send({ msg: 'Success.' });
-      }
-    );
+    responsesMdl.updateOne({ email: email, passcode: body.passcode }, body, (err, response) => {
+      if (err || !(response && response.ok)) {
+        if (err) storeErr(req, err);
+        return next(
+          createErr.InternalServerError(
+            'Something went wrong: Error encountered.<br>Sorry for the inconvienience.',
+          ),
+        );
+      } else res.send({ msg: 'Success.' });
+    });
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -470,8 +426,8 @@ candRouter.post('/feedback/', async (req, res, next) => {
     if (!email) {
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     }
     //
@@ -488,8 +444,8 @@ candRouter.post('/feedback/', async (req, res, next) => {
         if (err) storeErr(req, err);
         return next(
           createErr.InternalServerError(
-            'Something went wrong: Error encountered.<br>Continued without accepting feedback.'
-          )
+            'Something went wrong: Error encountered.<br>Continued without accepting feedback.',
+          ),
         );
       } else if (response)
         res.send({
@@ -521,8 +477,8 @@ candRouter.post('/resultPre/', async (req, res, next) => {
     if (!email) {
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     }
     //
@@ -530,9 +486,7 @@ candRouter.post('/resultPre/', async (req, res, next) => {
       if (err || !resp) {
         if (err) storeErr(req, err);
         next(
-          createErr.InternalServerError(
-            'Something went wrong.Please contact if issue persists.'
-          )
+          createErr.InternalServerError('Something went wrong.Please contact if issue persists.'),
         );
       } else res.send({ data: resp.result });
     });
@@ -548,16 +502,13 @@ candRouter.post('/showResult/', async (req, res, next) => {
     if (!email) {
       return next(
         createErr.Unauthorized(
-          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-        )
+          'Candidate not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+        ),
       );
     }
     //
     const body = await passcodeV.validateAsync(req.body);
-    const promise1 = qBankMdl.findOne(
-      { passcode: body.passcode },
-      'testInfo qBank	crctOpt'
-    );
+    const promise1 = qBankMdl.findOne({ passcode: body.passcode }, 'testInfo qBank	crctOpt');
     const promise2 = responsesMdl.findOne({
       passcode: body.passcode,
       email: email,
@@ -567,8 +518,8 @@ candRouter.post('/showResult/', async (req, res, next) => {
         if (!resp[0] || !resp[1])
           return next(
             createErr.NotFound(
-              'There was something wrong detected with your Participation.<br>Contact your HR/Incharge.'
-            )
+              'There was something wrong detected with your Participation.<br>Contact your HR/Incharge.',
+            ),
           );
         const obj = {};
         obj.libSel = resp[1].libSel;
@@ -589,11 +540,7 @@ candRouter.post('/showResult/', async (req, res, next) => {
       })
       .catch((err) => {
         storeErr(req, err);
-        next(
-          createErr.InternalServerError(
-            'Somthing went wrong.<br>Contact if issue persists.'
-          )
-        );
+        next(createErr.InternalServerError('Somthing went wrong.<br>Contact if issue persists.'));
       });
   } catch (error) {
     if (error.isJoi) error.status = 422;

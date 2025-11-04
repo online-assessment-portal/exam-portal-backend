@@ -39,7 +39,7 @@ function prepareAndSend(to) {
             () => {
               res({ accepted: [to] });
             },
-            Math.floor(Math.random() * 10000 + 3000)
+            Math.floor(Math.random() * 10000 + 3000),
           );
         });
       })();
@@ -68,10 +68,7 @@ function prepareAndSend(to) {
       } else reject();
     } catch (err) {
       console.log(err);
-      storeErr(
-        `AWS Mail Error - ${err.code} - Sending to ${mailObject.to}`,
-        err
-      );
+      storeErr(`AWS Mail Error - ${err.code} - Sending to ${mailObject.to}`, err);
       reject();
     }
   });
@@ -102,9 +99,7 @@ async function regulateQueue(list) {
         });
       })
       .catch(() =>
-        console.log(
-          'Promise.all failure - not all mails were success at regulateQueue'
-        )
+        console.log('Promise.all failure - not all mails were success at regulateQueue'),
       );
 }
 //

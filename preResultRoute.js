@@ -11,20 +11,14 @@ const {
   excelDnV,
   showResV,
 } = require('./helpers/joiSchema');
-const {
-  qBankMdl,
-  responsesMdl,
-  credentialsMdl,
-} = require('./helpers/schemaColl');
+const { qBankMdl, responsesMdl, credentialsMdl } = require('./helpers/schemaColl');
 //
 router.post('/getResponseData/', async (req, res, next) => {
   try {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await passcodeV.validateAsync(req.body);
     const promise1 = qBankMdl.findOne({ passcode: body.passcode });
@@ -32,14 +26,11 @@ router.post('/getResponseData/', async (req, res, next) => {
     const response = await Promise.all([promise1, promise2]);
     if (response.length || response[0]) {
       if (response[0].admin !== uname) {
-        storeErr(
-          req,
-          `${uname} tries to get Responses of ${body.passcode} out of organization.`
-        );
+        storeErr(req, `${uname} tries to get Responses of ${body.passcode} out of organization.`);
         return next(
           createErr.Unauthorized(
-            "You don't have sufficient Rights to access Test of some other Organization."
-          )
+            "You don't have sufficient Rights to access Test of some other Organization.",
+          ),
         );
       }
       //
@@ -50,16 +41,8 @@ router.post('/getResponseData/', async (req, res, next) => {
           passcode: body.passcode,
         };
         res.send(obj);
-      } else
-        next(
-          createErr.UnprocessableEntity(
-            'No User Has Participated in this Test/Event.'
-          )
-        );
-    } else
-      next(
-        createErr.NotFound('No Test/Event is available with this Passcode.')
-      );
+      } else next(createErr.UnprocessableEntity('No User Has Participated in this Test/Event.'));
+    } else next(createErr.NotFound('No Test/Event is available with this Passcode.'));
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -71,9 +54,7 @@ router.post('/uploadResult/', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await uploadResV.validateAsync(req.body);
     //
@@ -95,7 +76,7 @@ router.post('/uploadResult/', async (req, res, next) => {
           exmnrMark: JSON.stringify(eMarksList[i]),
           exmnrCmnt: JSON.stringify(eCmntsList[i]),
           finalScore: flScrList[i],
-        }
+        },
       );
       promiseColl.push(promise);
     });
@@ -109,14 +90,9 @@ router.post('/uploadResult/', async (req, res, next) => {
           } else failCtr++;
         });
         if (failCtr) {
-          storeErr(
-            req,
-            `Result Uploaded: ${body.passcode}, failed for ${failCtr}`
-          );
+          storeErr(req, `Result Uploaded: ${body.passcode}, failed for ${failCtr}`);
           next(
-            createErr.Conflict(
-              `Result was Upload,but Failed to upload for ${failCtr} Candidates`
-            )
+            createErr.Conflict(`Result was Upload,but Failed to upload for ${failCtr} Candidates`),
           );
         } else
           res.send({
@@ -125,11 +101,7 @@ router.post('/uploadResult/', async (req, res, next) => {
       })
       .catch((err) => {
         storeErr(req, err);
-        next(
-          createErr.Conflict(
-            'Result Uploaded, but Failed to upload for some Candidates'
-          )
-        );
+        next(createErr.Conflict('Result Uploaded, but Failed to upload for some Candidates'));
       });
   } catch (error) {
     if (error.isJoi) error.status = 422;
@@ -142,9 +114,7 @@ router.post('/uploadRanking/', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await uploadRankV.validateAsync(req.body);
     const spms = JSON.parse(body.spms);
@@ -156,7 +126,7 @@ router.post('/uploadRanking/', async (req, res, next) => {
         {
           sRank: fsRank[i],
           aRank: each[1],
-        }
+        },
       );
       promiseColl.push(promise);
     });
@@ -170,24 +140,15 @@ router.post('/uploadRanking/', async (req, res, next) => {
         } else failCtr++;
       });
       if (failCtr) {
-        storeErr(
-          req,
-          `Ranking Uploaded: ${body.passcode}, failed for ${failCtr}`
-        );
-        next(
-          createErr.Conflict(
-            `Ranking Uploaded,but Failed to upload for ${failCtr} Candidates`
-          )
-        );
+        storeErr(req, `Ranking Uploaded: ${body.passcode}, failed for ${failCtr}`);
+        next(createErr.Conflict(`Ranking Uploaded,but Failed to upload for ${failCtr} Candidates`));
       } else
         res.send({
           msg: `Ranking Uploaded successfully.<br>New modifications ${modified}`,
         });
     } else
       next(
-        createErr.InternalServerError(
-          'Something went wrong: Failed for some of the Candidates'
-        )
+        createErr.InternalServerError('Something went wrong: Failed for some of the Candidates'),
       );
   } catch (error) {
     if (error.isJoi) error.status = 422;
@@ -200,9 +161,7 @@ router.post('/downloadExcel/', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await excelDnV.validateAsync(req.body);
     res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -219,9 +178,7 @@ router.post('/getResultStr/', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await getResultStrV.validateAsync(req.body);
     body.mailList = JSON.parse(body.mailList);
@@ -249,9 +206,7 @@ router.post('/iniShowResult/', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await showResV.validateAsync(req.body);
     //
@@ -263,7 +218,7 @@ router.post('/iniShowResult/', async (req, res, next) => {
         { email: each },
         {
           result: resultStr[i],
-        }
+        },
       );
       promiseColl.push(promise);
     });
@@ -284,9 +239,7 @@ router.post('/iniShowResult/', async (req, res, next) => {
       res.send({ msg });
     } else
       next(
-        createErr.InternalServerError(
-          'Something went wrong: Failed for some of the Candidates'
-        )
+        createErr.InternalServerError('Something went wrong: Failed for some of the Candidates'),
       );
   } catch (error) {
     if (error.isJoi) error.status = 422;

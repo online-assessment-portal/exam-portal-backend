@@ -7,12 +7,7 @@ const { storeErr, isAdminLogged } = require('./helpers/common');
 //
 const { contactV, passcodeV } = require('./helpers/joiSchema');
 //
-const {
-  qBankMdl,
-  responsesMdl,
-  joinModel,
-  contactMdl,
-} = require('./helpers/schemaColl');
+const { qBankMdl, responsesMdl, joinModel, contactMdl } = require('./helpers/schemaColl');
 // ADMIN MONITORING
 function getAllCand(passcode) {
   return new Promise((res, rej) => {
@@ -51,8 +46,8 @@ router.post('/contact', async (req, res, next) => {
         if (err) storeErr(req, err);
         return next(
           createErr.InternalServerError(
-            'Something went wrong: Sorry for the inconvenience caused.<br>Please drop a message on our WhatsApp 8529493017.'
-          )
+            'Something went wrong: Sorry for the inconvenience caused.<br>Please drop a message on our WhatsApp 8529493017.',
+          ),
         );
       } else if (response)
         res.send({
@@ -71,19 +66,14 @@ router.post('/enquire/', async (req, res, next) => {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     const body = await passcodeV.validateAsync(req.body);
     // Get test
     const promise1 = new Promise((resolve, reject) => {
       qBankMdl
         .findOne({ passcode: body.passcode }, 'testInfo admin', (err, test) => {
-          if (err)
-            createErr.InternalServerError(
-              'Something went wrong: Error encountered.'
-            );
+          if (err) createErr.InternalServerError('Something went wrong: Error encountered.');
           else if (test) {
             if (test.admin !== uname) {
               reject(-1);
@@ -92,10 +82,7 @@ router.post('/enquire/', async (req, res, next) => {
             delete test.admin;
             test.passcode = body.passcode;
             return resolve(test);
-          } else
-            createErr.NotFound(
-              'No Test/Event Exists with Passcode ' + body.passcode
-            );
+          } else createErr.NotFound('No Test/Event Exists with Passcode ' + body.passcode);
           resolve();
         })
         .lean();
@@ -117,17 +104,8 @@ router.post('/enquire/', async (req, res, next) => {
       .catch((err) => {
         storeErr('examAdmin', err);
         if (err === -1)
-          next(
-            createErr.Unauthorized(
-              "You can't access Test/Event of some other organization"
-            )
-          );
-        else
-          next(
-            createErr.InternalServerError(
-              'Something went wrong: Error encountered.'
-            )
-          );
+          next(createErr.Unauthorized("You can't access Test/Event of some other organization"));
+        else next(createErr.InternalServerError('Something went wrong: Error encountered.'));
       });
   } catch (error) {
     if (error.isJoi) error.status = 422;

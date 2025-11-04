@@ -7,8 +7,7 @@ const { credentialsMdl } = require('./helpers/schemaColl');
 //
 function genRandomPass(email) {
   const signs = '@#%&';
-  let pass =
-    email.charAt(0).toUpperCase() + Math.random().toString(36).slice(-5);
+  let pass = email.charAt(0).toUpperCase() + Math.random().toString(36).slice(-5);
   const rndmSign = signs.charAt(Math.floor(Math.random() * 4));
   const rndmNum = Math.floor(Math.random() * 9) + 1;
   const randLoc1 = Math.floor(Math.random() * 3) + 1;

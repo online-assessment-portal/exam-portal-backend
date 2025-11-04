@@ -86,7 +86,7 @@ router.post('/signIn/', async (req, res, next) => {
         //
         // const token = await signAccessToken(findRes.uname);
         processSignIn(req, res, findRes.email, findRes.uname, findRes.name, findRes.img).then(
-          userInfo => {
+          (userInfo) => {
             const obj = {
               status: 200,
               userInfo: userInfo,
@@ -260,7 +260,7 @@ router.post('/register_Acc/', async (req, res, next) => {
           delete req.session.sentTo;
           const obj = { status: 200 };
           processSignIn(req, res, response.email, response.uname, response.name, response.img).then(
-            userInfo => {
+            (userInfo) => {
               obj.userInfo = userInfo;
               res.send(obj);
             },
@@ -283,7 +283,7 @@ router.post('/register_Acc/', async (req, res, next) => {
           else storeErr(req, `Account Created without Verification: ${email}`);
           delete req.session.sentTo;
           const obj = { status: 200 };
-          processSignIn(req, res, response.email, '', '', '').then(userInfo => {
+          processSignIn(req, res, response.email, '', '', '').then((userInfo) => {
             obj.userInfo = userInfo;
             res.send(obj);
           });

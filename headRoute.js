@@ -18,15 +18,15 @@ router.post('/addAdmin', async (req, res, next) => {
       else
         return next(
           createErr.InternalServerError(
-            'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.'
-          )
+            'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.',
+          ),
         );
     } else {
       storeErr(req, 'Hash Password generate Failed: Add Admin');
       return next(
         createErr.ServiceUnavailable(
-          'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.'
-        )
+          'This service is currently down.<br>Sorry for the inconvenience caused.<br>Please try again later.',
+        ),
       );
     }
   } catch (error) {

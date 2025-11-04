@@ -17,10 +17,7 @@ async function awsMailer(mailObject) {
     else return 2;
   } catch (err) {
     mailObject.html = mailObject.html.slice(0, 50);
-    storeErr(
-      `AWS Mail Error - ${err.code} - ${JSON.stringify(mailObject)}`,
-      err
-    );
+    storeErr(`AWS Mail Error - ${err.code} - ${JSON.stringify(mailObject)}`, err);
     // 2 - Server Error/No Internet Server, 3 - Invalid Recepient, 4 - Auth Failed
     if (err.code === 'EENVELOPE') return 3;
     else if (err.code === 'EAUTH') return 4;

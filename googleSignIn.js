@@ -22,7 +22,7 @@ const googleConfig = {
 const oauth2Client = new google.auth.OAuth2(
   googleConfig.clientId,
   googleConfig.clientSecret,
-  googleConfig.redirect
+  googleConfig.redirect,
 );
 google.options({ auth: oauth2Client });
 // This scope tells google what information we want to request.
@@ -59,7 +59,7 @@ router.get('/google-login', async (req, res) => {
   try {
     if (isUserLogged(req))
       return res.send(
-        '<center><h1 style="color: orangered;font-family: monospace;">You were loggedIn previously.<br>Please proceed legally.</h1></center>'
+        '<center><h1 style="color: orangered;font-family: monospace;">You were loggedIn previously.<br>Please proceed legally.</h1></center>',
       );
     const query = req.query;
     console.log(query);
@@ -68,7 +68,7 @@ router.get('/google-login', async (req, res) => {
     //
     if (!googleUserData.email) {
       res.send(
-        '<center><h1 style="color: orangered;font-family: monospace;">Google didn\'t authenticate your account with your email address or it was denied by you.<br>Email address must be sent to us to process SignIn/SignUp.</h1></center>'
+        '<center><h1 style="color: orangered;font-family: monospace;">Google didn\'t authenticate your account with your email address or it was denied by you.<br>Email address must be sent to us to process SignIn/SignUp.</h1></center>',
       );
       return false;
     }
@@ -86,32 +86,24 @@ router.get('/google-login', async (req, res) => {
         googleUserData.email,
         googleUserData.name,
         googleUserData.id,
-        'Google SignUp'
+        'Google SignUp',
       )
         .then(() => {
-          processSignIn(
-            req,
-            res,
-            googleUserData.email,
-            '',
-            googleUserData.name,
-            '',
-            2
-          );
+          processSignIn(req, res, googleUserData.email, '', googleUserData.name, '', 2);
           res.redirect((isDev ? frontendDevURL : '') + '/test?&ds=true');
           return false;
         })
         .catch((err) => {
           storeErr(req, err);
           res.send(
-            '<center><h1 style="color: orangered;font-family: monospace;">Account Verification Failed.</h1></center>'
+            '<center><h1 style="color: orangered;font-family: monospace;">Account Verification Failed.</h1></center>',
           );
         });
     }
   } catch (error) {
     storeErr(req, error);
     res.send(
-      '<center><h1 style="color: orangered;font-family: monospace;">Bad Request detected.<br>Account Verification Failed.</h1></center>'
+      '<center><h1 style="color: orangered;font-family: monospace;">Bad Request detected.<br>Account Verification Failed.</h1></center>',
     );
   }
 });

@@ -139,7 +139,7 @@ const AuthValidation = {
             .lowercase()
             .trim()
             .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
-          Joi.string().min(3).max(60).trim()
+          Joi.string().min(3).max(60).trim(),
         )
         .required()
         .messages({
@@ -159,7 +159,7 @@ const AuthValidation = {
             .lowercase()
             .trim()
             .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
-          Joi.string().min(3).max(60).trim()
+          Joi.string().min(3).max(60).trim(),
         )
         .required()
         .messages({
@@ -182,7 +182,7 @@ const AuthValidation = {
           .lowercase()
           .trim()
           .email({ tlds: { allow: ['com', 'in', 'edu', 'net'] } }),
-        Joi.string().min(3).max(60).trim()
+        Joi.string().min(3).max(60).trim(),
       )
       .required()
       .messages({

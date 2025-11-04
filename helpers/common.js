@@ -32,14 +32,7 @@ function clearAllCookies(req, res) {
 function isAdminLogged(req, toReturn) {
   if (req.session.adminLogged) {
     const cookie = req.cookies;
-    if (
-      cookie &&
-      cookie.uname &&
-      cookie.org &&
-      cookie.img &&
-      cookie.key &&
-      cookie.mailAcc
-    ) {
+    if (cookie && cookie.uname && cookie.org && cookie.img && cookie.key && cookie.mailAcc) {
       if (toReturn === 1) {
         const obj = {
           loggedIn: true,
@@ -56,15 +49,7 @@ function isAdminLogged(req, toReturn) {
   } else return false;
 }
 //
-async function processSignIn(
-  req,
-  res,
-  email,
-  uname,
-  name,
-  img,
-  isWhat = false
-) {
+async function processSignIn(req, res, email, uname, name, img, isWhat = false) {
   return new Promise((resolve) => {
     // isWhat false Credentials SignIn , 1 - Invitation SignIn , 2 - GoogleSignIn
     // Clear previous cookies if set
@@ -91,10 +76,8 @@ async function processSignIn(
         }
       });
     } else {
-      if (isWhat === 1)
-        res.cookie('invReg', email, { ...cookieObj, signed: true });
-      else if (isWhat === 2)
-        res.cookie('gsign', email, { ...cookieObj, signed: true });
+      if (isWhat === 1) res.cookie('invReg', email, { ...cookieObj, signed: true });
+      else if (isWhat === 2) res.cookie('gsign', email, { ...cookieObj, signed: true });
       req.session.destroy();
       resolve();
     }

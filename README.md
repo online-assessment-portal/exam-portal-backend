@@ -50,12 +50,10 @@ A fully integrated online platform designed to streamline the process of creatin
    ```
 
 3. Set up the database:
-
    - If using MongoDB, ensure it's installed and running. You can configure it in the `.env` file.
    - If using MySQL, make sure the database is set up and connected.
 
 4. Configure environment variables:
-
    - Create a `.env` file and configure the necessary variables like database connection, JWT secret, etc.
 
    Example `.env` file:

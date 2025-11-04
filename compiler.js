@@ -23,17 +23,12 @@ const { URLSearchParams } = require('url');
 function seErrHandler(err) {
   const statusCode = res.status;
   storeErr('', err);
-  if (statusCode == 401)
-    createErr.BadRequest('Invalid Access<br>Inform Test Incharge');
+  if (statusCode == 401) createErr.BadRequest('Invalid Access<br>Inform Test Incharge');
   else if (statusCode == 402)
-    createErr.BadRequest(
-      'Unable to create submission.<br>Retry after few minutes'
-    );
+    createErr.BadRequest('Unable to create submission.<br>Retry after few minutes');
   else if (statusCode == 403) createErr.BadRequest('Access Denied');
-  else if (statusCode == 404)
-    createErr.BadRequest("Code doesn't exist.<br>Submission mismatched");
-  else if (statusCode == 400)
-    createErr.BadRequest('Bad Request<br>Inform Test Incharge');
+  else if (statusCode == 404) createErr.BadRequest("Code doesn't exist.<br>Submission mismatched");
+  else if (statusCode == 400) createErr.BadRequest('Bad Request<br>Inform Test Incharge');
   else createErr.BadRequest('Something went wrong.<br>Inform Test Incharge');
 }
 function getSubmissionStream(submissionId, stream) {
@@ -92,29 +87,21 @@ function getSubmission(submissionId, extraSleep, obj) {
             if (extraSleep) sleepFor = 2;
             else sleepFor = 0.5;
           } else sleepFor = 3;
-          sleep(sleepFor).then(() =>
-            getSubmission(submissionId, 0, obj).then(() => resolve())
-          );
+          sleep(sleepFor).then(() => getSubmission(submissionId, 0, obj).then(() => resolve()));
         } else if (response.executing === false) {
           obj.time = response.result.time;
           obj.memory = response.result.memory;
           if (statusCode === 15) {
             const streams = response.result.streams;
-            intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve()
-            );
+            intiateStreamCheck(submissionId, streams, obj).then(() => resolve());
           } else if (statusCode === 11) {
             obj.err += `compilation error - ${response.result.signal_desc}\n`;
             const streams = response.result.streams;
-            intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve()
-            );
+            intiateStreamCheck(submissionId, streams, obj).then(() => resolve());
           } else if (statusCode === 12) {
             obj.err += `runtime error - ${response.result.signal_desc}\n`;
             const streams = response.result.streams;
-            intiateStreamCheck(submissionId, streams, obj).then(() =>
-              resolve()
-            );
+            intiateStreamCheck(submissionId, streams, obj).then(() => resolve());
           } else if (statusCode === 13) {
             obj.err += 'Time-limit exceeded';
           } else if (statusCode === 17) {

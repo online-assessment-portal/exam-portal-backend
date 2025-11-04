@@ -56,7 +56,7 @@ app.use(
         'worker-src': ['blob:'],
       },
     },
-  })
+  }),
 );
 
 // Request Tracing Middleware
@@ -96,7 +96,7 @@ app.use(
       sameSite: isProd ? 'none' : 'strict', // "strict"/"lax" for dev
     },
     proxy: isProd ? true : false,
-  })
+  }),
 );
 //
 const cookieParser = require('cookie-parser');
@@ -194,8 +194,8 @@ app.post('/logout/', (req, res, next) => {
   } else {
     next(
       createErr.InternalServerError(
-        "Something went wrong.<br>Request couldn't be placed now.<br>Sorry for the inconvenience caused."
-      )
+        "Something went wrong.<br>Request couldn't be placed now.<br>Sorry for the inconvenience caused.",
+      ),
     );
   }
 });

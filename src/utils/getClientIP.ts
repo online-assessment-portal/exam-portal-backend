@@ -4,9 +4,7 @@ const getClientIP = (req: Request): string => {
   // Check x-forwarded-for (most common proxy header)
   const forwardedFor = req.headers['x-forwarded-for'];
   if (forwardedFor) {
-    const ip = (
-      Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
-    ) as string;
+    const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) as string;
     const firstIP = (ip.split(',')[0] ?? '').trim();
     if (firstIP != '') {
       return firstIP;

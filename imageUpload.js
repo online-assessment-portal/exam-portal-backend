@@ -44,8 +44,8 @@ uploadRouter.post('/img', async (req, res, next) => {
   if (!email) {
     return next(
       createErr.Unauthorized(
-        'User not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.'
-      )
+        'User not Logged In / was inactive for a long time.<br>Please refresh this Page and SignIn.',
+      ),
     );
   }
   //
@@ -71,11 +71,7 @@ uploadRouter.post('/img', async (req, res, next) => {
         return next(createErr.UnprocessableEntity(req.fileValidationError));
       } else if (!req.file) {
         storeErr(req, 'No image file received.');
-        return next(
-          createErr.UnprocessableEntity(
-            'Please select a valid image file to upload.'
-          )
-        );
+        return next(createErr.UnprocessableEntity('Please select a valid image file to upload.'));
       } else {
         const formData = new FormData();
         formData.append('key', imgbbKey);
@@ -107,14 +103,14 @@ uploadRouter.post('/img', async (req, res, next) => {
           } else
             return next(
               createErr.InternalServerError(
-                'Something went wrong Image was uploaded.<br>But it was not successfully associated with your account.<br>Contact webmaster.'
-              )
+                'Something went wrong Image was uploaded.<br>But it was not successfully associated with your account.<br>Contact webmaster.',
+              ),
             );
         } else
           return next(
             createErr.InternalServerError(
-              "Something went wrong Image couldn't be uploaded now.<br>Retry after some time."
-            )
+              "Something went wrong Image couldn't be uploaded now.<br>Retry after some time.",
+            ),
           );
       }
     });

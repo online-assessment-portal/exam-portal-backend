@@ -10,7 +10,9 @@
     "start": "tsx watch ./examServer.js",
     "dev": "nodemon examServer.js",
     "build": "tsc -p tsconfig.json",
-    "start:nodemon:prod": "NODE_ENV-production nodemon examServer.js"
+    "start:nodemon:prod": "NODE_ENV-production nodemon examServer.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@types/cors": "^2.8.19",

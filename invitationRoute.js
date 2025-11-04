@@ -2,12 +2,7 @@ const express = require('express');
 const invRouter = express.Router();
 //
 const createErr = require('http-errors');
-const {
-  isAdminLogged,
-  isUserLogged,
-  storeErr,
-  processSignIn,
-} = require('./helpers/common');
+const { isAdminLogged, isUserLogged, storeErr, processSignIn } = require('./helpers/common');
 //
 const {
   passcodeV,
@@ -18,11 +13,7 @@ const {
   inviteUnSubV,
 } = require('./helpers/joiSchema');
 //
-const {
-  invitationMdl,
-  invUnSubMdl,
-  credentialsMdl,
-} = require('./helpers/schemaColl');
+const { invitationMdl, invUnSubMdl, credentialsMdl } = require('./helpers/schemaColl');
 //
 const directSignUp = require('./directSignUp');
 //
@@ -30,8 +21,7 @@ const directSignUp = require('./directSignUp');
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 function randomString(length) {
   const result = [];
-  for (let i = 0; i < length; i++)
-    result.push(chars.charAt(Math.floor(Math.random() * 62)));
+  for (let i = 0; i < length; i++) result.push(chars.charAt(Math.floor(Math.random() * 62)));
   return result.join('');
 }
 //
@@ -48,7 +38,7 @@ const googleConfig = {
 const oAuth2Client = new google.auth.OAuth2(
   googleConfig.clientId,
   googleConfig.clientSecret,
-  googleConfig.redirect
+  googleConfig.redirect,
 );
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.send'];
@@ -64,9 +54,7 @@ invRouter.get('/setupMailer/', async (req, res, next) => {
     if (!code) return next(createErr.BadRequest('Invalid Request Received'));
     const { tokens } = await oAuth2Client.getToken(code);
     if (!tokens.refresh_token)
-      return createErr.BadRequest(
-        'Mailer Account already exists for this Mail-Id.'
-      );
+      return createErr.BadRequest('Mailer Account already exists for this Mail-Id.');
     // const secure = req.csrfToken();
     const secure = 'notBeingUsed';
     const sendForm = `<style> form, input { font-size: large; font-family: "Roboto", sans-serif; } input { min-width: 40%; } button { font-size: large; } </style> <form action="/invite/setupAccount" method="post" style="font-size: x-large;"> <label for="name">Sender's Name</label> <input type="text" name="name" id="name" placeholder="Will be displayed in eMail" required> <br><br> <label for="mail">Email Address</label> <input type="email" name="email" id="mail" placeholder="Same as used for account creation" required> <input type="hidden" name="token" value="${tokens.refresh_token}"> <input type="hidden" name="_csrf" value="${secure}"><br> <br> <ul> <li>Please Note these settings are irreversible.</li> <li>Verify before submit</li> <li>Details are case-sensitive</li> <li>If the details do not match, mail will fail to deliver.</li> </ul> <button type="submit">Final Submit</button> </form>`;
@@ -83,9 +71,7 @@ invRouter.post('/setupAccount', async (req, res, next) => {
   try {
     const uname = isAdminLogged(req, 2);
     if (uname === false)
-      return next(
-        createErr.Unauthorized('Admin not Logged In.<br>Please Login.')
-      );
+      return next(createErr.Unauthorized('Admin not Logged In.<br>Please Login.'));
     const body = await invMailAcc.validateAsync(req.body);
     //
     const account = await adminCredMdl.findOne({ uname: uname }, 'mailAcc');
@@ -96,13 +82,10 @@ invRouter.post('/setupAccount', async (req, res, next) => {
     mailAccS[body.email] = { name: body.name, token: body.token };
     //
     mailAccS = JSON.stringify(mailAccS);
-    const status = await adminCredMdl.updateOne(
-      { _id: account._id },
-      { mailAcc: mailAccS }
-    );
+    const status = await adminCredMdl.updateOne({ _id: account._id }, { mailAcc: mailAccS });
     if (status.ok && status.nModified)
       return res.send(
-        'Account Created<br><br><a href="/testAdmin">Go to AdminPanel</a> logout and re-login to view updated Account.'
+        'Account Created<br><br><a href="/testAdmin">Go to AdminPanel</a> logout and re-login to view updated Account.',
       );
     res.send('Something went wrong');
   } catch (error) {
@@ -125,9 +108,7 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
     to: to,
     subject: reqBody.mailSub,
     html: mailBody,
-    text:
-      'To view complete mail: Open it in supported browser.Your Exam-Link is' +
-      link,
+    text: 'To view complete mail: Open it in supported browser.Your Exam-Link is' + link,
     list: {
       unsubscribe: {
         url: unsubLink,
@@ -135,8 +116,7 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
       },
     },
   };
-  if (mailServer === 'ms')
-    mailObject.replyTo = 'contact@shredtest.coderadiant.com';
+  if (mailServer === 'ms') mailObject.replyTo = 'contact@shredtest.coderadiant.com';
   //
   const retObj = {
     email: to,
@@ -151,12 +131,7 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
     if (info.accepted.length) retObj.status = 1;
     return retObj;
   } catch (err) {
-    storeErr(
-      `Mail Error - ${mailServer} - ${err.code} - ${JSON.stringify(
-        mailObject
-      )}`,
-      err
-    );
+    storeErr(`Mail Error - ${mailServer} - ${err.code} - ${JSON.stringify(mailObject)}`, err);
     // 2 - Server Error/No Internet Server, 3 - Invalid Recepient, 4 - Auth Failed
     if (err.code === 'EENVELOPE') retObj.status = 3;
     else if (err.code === 'EAUTH') retObj.status = 4;
@@ -172,14 +147,7 @@ function delay2Sec() {
     }, 2000);
   });
 }
-async function initSend(
-  transporter,
-  mailBody,
-  reqBody,
-  sendTo,
-  outboxList,
-  tokenList
-) {
+async function initSend(transporter, mailBody, reqBody, sendTo, outboxList, tokenList) {
   // Filter email
   try {
     sendTo = await emailV.validateAsync({ email: sendTo });
@@ -241,7 +209,7 @@ async function initiateMail(
   reqBody,
   outboxList,
   tokenList,
-  mailPerInit
+  mailPerInit,
 ) {
   const nextStack = (mailResp) => {
     // Process Mail Response
@@ -263,15 +231,7 @@ async function initiateMail(
     //
     if (queue.length) {
       delay2Sec().then(() => {
-        initiateMail(
-          transporter,
-          mailBody,
-          queue,
-          reqBody,
-          outboxList,
-          tokenList,
-          mailPerInit
-        );
+        initiateMail(transporter, mailBody, queue, reqBody, outboxList, tokenList, mailPerInit);
       });
     } else
       io.to(reqBody.myHold).emit('notify', {
@@ -284,14 +244,7 @@ async function initiateMail(
   const qLen = queue.length;
   for (let i = 0; i < mailPerInit && i < qLen; i++) {
     const sendTo = queue[i];
-    const promise = initSend(
-      transporter,
-      mailBody,
-      reqBody,
-      sendTo,
-      outboxList,
-      tokenList
-    );
+    const promise = initSend(transporter, mailBody, reqBody, sendTo, outboxList, tokenList);
     promiseColl.push(promise);
   }
   Promise.all(promiseColl).then(nextStack);
@@ -300,7 +253,7 @@ async function requestAccessToken(req, reqBody, next) {
   const oAuth2Client = new google.auth.OAuth2(
     googleConfig.clientId,
     googleConfig.clientSecret,
-    googleConfig.redirect
+    googleConfig.redirect,
   );
   oAuth2Client.setCredentials({ refresh_token: reqBody.token });
   //
@@ -309,16 +262,13 @@ async function requestAccessToken(req, reqBody, next) {
     accessToken = await oAuth2Client.getAccessToken();
   } catch (error) {
     if (error.response.data.error === 'invalid_grant')
-      storeErr(
-        req,
-        `Unable to get access token for Invitation Mailer Account -: ${reqBody.from}`
-      );
+      storeErr(req, `Unable to get access token for Invitation Mailer Account -: ${reqBody.from}`);
     else storeErr(req, error);
     io.to(reqBody.myHold).emit('cancelRest');
     return next(
       createErr.Unauthorized(
-        'Mailer A/C Authentication Failed.<br>Contact admnistrator to know how to fix.'
-      )
+        'Mailer A/C Authentication Failed.<br>Contact admnistrator to know how to fix.',
+      ),
     );
   }
   //
@@ -340,17 +290,12 @@ invRouter.post('/mail', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     //
     const reqBody = await inviteMailV.validateAsync(req.body);
     //
-    const resp = await invitationMdl.find(
-      { for: reqBody.passcode },
-      'email token'
-    );
+    const resp = await invitationMdl.find({ for: reqBody.passcode }, 'email token');
     if (resp) {
       const outboxList = [],
         token = [];
@@ -361,8 +306,7 @@ invRouter.post('/mail', async (req, res, next) => {
       const queue = JSON.parse(reqBody.queue);
       if (queue.length) {
         let transporter;
-        if (reqBody.token)
-          transporter = await requestAccessToken(req, reqBody, next);
+        if (reqBody.token) transporter = await requestAccessToken(req, reqBody, next);
         else transporter = awsTransporter;
         if (!transporter) return false;
         //
@@ -377,18 +321,14 @@ invRouter.post('/mail', async (req, res, next) => {
           reqBody,
           outboxList,
           token,
-          reqBody.token ? 1 : 10 // set number of mails to push in one go
+          reqBody.token ? 1 : 10, // set number of mails to push in one go
         );
         res.send({
           msg: 'Mailing Initiated : Look for notifications and mail Queue writer for updates.',
         });
       } else return next(createErr.BadRequest('Empty Invitation List'));
     } else
-      return next(
-        createErr.InternalServerError(
-          'Something went wrong.<br>Retry after sometime.'
-        )
-      );
+      return next(createErr.InternalServerError('Something went wrong.<br>Retry after sometime.'));
   } catch (error) {
     if (error.isJoi) error.status = 422;
     else storeErr(req, error);
@@ -399,9 +339,7 @@ invRouter.post('/allInvites', async (req, res, next) => {
   try {
     if (isAdminLogged(req, 2) === false)
       return next(
-        createErr.Unauthorized(
-          'Admin not Logged In.<br>Please refresh this Page and Login'
-        )
+        createErr.Unauthorized('Admin not Logged In.<br>Please refresh this Page and Login'),
       );
     //
     const reqBody = await passcodeV.validateAsync(req.body);
@@ -429,69 +367,53 @@ invRouter.get('/myAuth', async (req, res) => {
     } catch (error) {
       storeErr(req, `Invalid invitation URL ${error} - ${req.originalUrl}`);
       res.send(
-        '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
+        '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
       );
       return false;
     }
     const link = `/test?passcode=${param.passcode}`;
-    invitationMdl.findOne(
-      { for: param.passcode, email: param.email },
-      'token',
-      (err, record) => {
-        if (err || !record) {
-          if (err) storeErr(req, error);
-          res.send(
-            `<center><h1 style="color: orangered;font-family: monospace;">Unable to Authenticate.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`
-          );
+    invitationMdl.findOne({ for: param.passcode, email: param.email }, 'token', (err, record) => {
+      if (err || !record) {
+        if (err) storeErr(req, error);
+        res.send(
+          `<center><h1 style="color: orangered;font-family: monospace;">Unable to Authenticate.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`,
+        );
+      } else {
+        if (record.token === param.myAuthHash) {
+          credentialsMdl.findOne({ email: param.email }, 'uname name img', (err, resp) => {
+            // Login and Redirect
+            if (err)
+              res.send(
+                `<center><h1 style="color: orangered;font-family: monospace;">Something went wrong.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`,
+              );
+            // Invitation Registration for Closed Event
+            if (resp) {
+              processSignIn(req, res, param.email, resp.uname, resp.name, resp.img, 1);
+              res.redirect(link);
+            } else {
+              directSignUp(req, param.email, '', '', 'Invitation SignUp')
+                .then(() => {
+                  processSignIn(req, res, param.email, '', '', '', 1);
+                  res.redirect(`/test?passcode=${param.passcode}&ds=true`);
+                })
+                .catch(() => {
+                  const show = `<center><h1 style="color: orangered;font-family: monospace;">Due to some issues you can't continue using this link.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`;
+                  res.send(show);
+                });
+            }
+          });
         } else {
-          if (record.token === param.myAuthHash) {
-            credentialsMdl.findOne(
-              { email: param.email },
-              'uname name img',
-              (err, resp) => {
-                // Login and Redirect
-                if (err)
-                  res.send(
-                    `<center><h1 style="color: orangered;font-family: monospace;">Something went wrong.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`
-                  );
-                // Invitation Registration for Closed Event
-                if (resp) {
-                  processSignIn(
-                    req,
-                    res,
-                    param.email,
-                    resp.uname,
-                    resp.name,
-                    resp.img,
-                    1
-                  );
-                  res.redirect(link);
-                } else {
-                  directSignUp(req, param.email, '', '', 'Invitation SignUp')
-                    .then(() => {
-                      processSignIn(req, res, param.email, '', '', '', 1);
-                      res.redirect(`/test?passcode=${param.passcode}&ds=true`);
-                    })
-                    .catch(() => {
-                      const show = `<center><h1 style="color: orangered;font-family: monospace;">Due to some issues you can't continue using this link.<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`;
-                      res.send(show);
-                    });
-                }
-              }
-            );
-          } else {
-            storeErr(req, 'Auth Key Mismatch' + req.originalUrl);
-            res.send(
-              `<center><h1 style="color: orangered;font-family: monospace;">Failed to Verify Key<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`
-            );
-          }
+          storeErr(req, 'Auth Key Mismatch' + req.originalUrl);
+          res.send(
+            `<center><h1 style="color: orangered;font-family: monospace;">Failed to Verify Key<br>Nothing to worry<br>you can continue using below link.<br><a href="${link}">${link}</a></h1></center>`,
+          );
         }
       }
-    );
+    });
   } catch (error) {
     storeErr(req, error);
     res.send(
-      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
+      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
     );
   }
 });
@@ -503,54 +425,41 @@ invRouter.get('/unsub', async (req, res) => {
       param = await inviteUnSubV.validateAsync(req.query);
     } catch (error) {
       console.log(error);
-      storeErr(
-        req,
-        `Invalid inv-unsubscribe URL ${error} - ${req.originalUrl}`
-      );
+      storeErr(req, `Invalid inv-unsubscribe URL ${error} - ${req.originalUrl}`);
       res.send(
-        '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
+        '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
       );
       return false;
     }
-    invitationMdl.findOne(
-      { for: param.passcode, email: param.email },
-      'token',
-      (err, record) => {
-        const msg =
-          '<center><h1 style="color: orangered;font-family: monospace;">Unable to Authenticate.<br>Nothing to worry<br>you can reach us on our WhatsApp 8529493017, your request will be processed.</h1></center>';
-        if (err || !record) {
-          if (err) storeErr(req, error);
-          res.send(msg);
+    invitationMdl.findOne({ for: param.passcode, email: param.email }, 'token', (err, record) => {
+      const msg =
+        '<center><h1 style="color: orangered;font-family: monospace;">Unable to Authenticate.<br>Nothing to worry<br>you can reach us on our WhatsApp 8529493017, your request will be processed.</h1></center>';
+      if (err || !record) {
+        if (err) storeErr(req, error);
+        res.send(msg);
+      } else {
+        if (record.token === param.myAuthHash) {
+          param.userAgent = req.headers['user-agent'];
+          param.ip = req.headers['x-forwarded-for'] || req.ip;
+          invUnSubMdl.create(param, (err, record) => {
+            if (err || !record) {
+              storeErr('', `invite un-sub Store in DB Failed: ${JSON.stringify(obj)}`);
+              res.send(msg);
+            } else
+              res.send(
+                '<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br>Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on HomePage.<br>If this was by mistake contact your organization or website-Admin to re-subscribe.</h1><center>',
+              );
+          });
         } else {
-          if (record.token === param.myAuthHash) {
-            param.userAgent = req.headers['user-agent'];
-            param.ip = req.headers['x-forwarded-for'] || req.ip;
-            invUnSubMdl.create(param, (err, record) => {
-              if (err || !record) {
-                storeErr(
-                  '',
-                  `invite un-sub Store in DB Failed: ${JSON.stringify(obj)}`
-                );
-                res.send(msg);
-              } else
-                res.send(
-                  '<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br>Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on HomePage.<br>If this was by mistake contact your organization or website-Admin to re-subscribe.</h1><center>'
-                );
-            });
-          } else {
-            storeErr(
-              req,
-              'inv-unsubscribe auth-Key mismatch ' + req.originalUrl
-            );
-            res.send(msg);
-          }
+          storeErr(req, 'inv-unsubscribe auth-Key mismatch ' + req.originalUrl);
+          res.send(msg);
         }
       }
-    );
+    });
   } catch (error) {
     storeErr(req, error);
     res.send(
-      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>'
+      '<center><h1 style="color: orangered;font-family: monospace;">Invalid URL</h1></center>',
     );
   }
 });
