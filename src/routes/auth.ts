@@ -16,9 +16,12 @@ router.post('/register/complete', AuthController.completeRegistration);
 // Reset Flow
 router.post('/reset/send-otp', otpMailRateLimitMiddleware, AuthController.sendResetOtp);
 router.post('/reset/verify-otp', otpVerifyRateLimitMiddleware, AuthController.verifyResetOtp);
-router.put('/reset/complete', AuthController.completeReset);
+router.post('/reset/complete', AuthController.completeReset);
 
 // Signin
 router.post('/signin', signinRateLimitMiddleware, AuthController.signin);
+
+// Signout
+router.post('/signout', AuthController.signout);
 
 export default router;

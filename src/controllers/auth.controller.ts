@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import createErr from 'http-errors';
 import { AuthService } from '../services/auth/auth.service';
 
+import { processSignIn } from '../../helpers/common';
 import {
   ApiResponse as ApiResponseType,
   CompleteRequest,
@@ -9,10 +10,9 @@ import {
   SigninRequest,
   VerifyOtpRequest,
 } from '../types/auth.types';
+import { LoggerWrapper } from '../utils/logging';
 import { ApiResponse } from '../utils/response';
 import { AuthValidation } from '../validation/auth.validation';
-import { processSignIn } from '../../helpers/common';
-import { LoggerWrapper } from '../utils/logging';
 
 interface VerificationTokenPayload {
   email: string;
@@ -27,8 +27,6 @@ const ERROR_MESSAGES = {
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
   ACCOUNT_CREATION_FAILED: 'Unable to create account. Please try again.',
   PASSWORD_RESET_FAILED: 'Unable to reset password. Please try again.',
-  ACCOUNT_LOCKED:
-    'Account temporarily locked due to multiple failed attempts. Please try again in 15 minutes.',
   INVALID_CREDENTIALS: 'Invalid email or password. Please check your credentials and try again.',
   INVALID_TOKEN: 'Invalid or expired verification. Please request a new OTP.',
   PROCESS_SIGNIN_FAILED_AFTER_REGISTRATION:
@@ -76,14 +74,19 @@ export class AuthController {
     try {
       const { email } = await AuthValidation.register.sendOtpSchema.validateAsync(req.body);
       log.logUserAction('Registration OTP request', email);
-      await AuthController.processSendOtp(
-        email,
-        false,
-        res,
-        next,
-        SUCCESS_MESSAGES.REGISTER_OTP,
-        log,
-      );
+
+      const account = await AuthService.findUserByEmail(email);
+      const isAccountExists = !!account;
+
+      if (isAccountExists) {
+        log.logUserAction('OTP requested for existing account', email);
+        return ApiResponse.delayedSuccess(res, SUCCESS_MESSAGES.REGISTER_OTP);
+      }
+
+      await AuthService.sendOtp(email);
+
+      log.logUserAction('OTP sent successfully', email);
+      return ApiResponse.success(res, SUCCESS_MESSAGES.REGISTER_OTP);
     } catch (error: unknown) {
       log.error('Registration OTP request failed', error);
       return next(error);
@@ -192,7 +195,19 @@ export class AuthController {
     try {
       const { email } = await AuthValidation.reset.sendOtpSchema.validateAsync(req.body);
       log.logUserAction('Password reset OTP request', email);
-      await AuthController.processSendOtp(email, true, res, next, SUCCESS_MESSAGES.RESET_OTP, log);
+
+      const account = await AuthService.findUser(email);
+      const isAccountExists = !!account;
+
+      if (!isAccountExists) {
+        log.logUserAction('OTP requested for non-existing account', email);
+        return ApiResponse.delayedSuccess(res, SUCCESS_MESSAGES.RESET_OTP);
+      }
+
+      await AuthService.sendOtp(email);
+
+      log.logUserAction('OTP sent successfully', email);
+      return ApiResponse.success(res, SUCCESS_MESSAGES.RESET_OTP);
     } catch (error: unknown) {
       log.error('Password reset OTP request failed', error);
       return next(error);
@@ -348,41 +363,57 @@ export class AuthController {
   }
 
   // ==========================================
-  // PRIVATE HELPER METHODS
+  // SIGNOUT FLOW
   // ==========================================
 
   /**
-   * Shared OTP processing logic
-   * expectExists: for reset=true (account must exist), for register=false (account must NOT exist)
+   * User signout
    */
-  private static async processSendOtp(
-    email: string,
-    expectExists: boolean,
+  static async signout(
+    req: Request,
     res: Response<ApiResponseType>,
     next: NextFunction,
-    successMessage: string,
-    log: LoggerWrapper,
   ): Promise<void> {
+    const log = new LoggerWrapper(req);
     try {
-      log.info('Processing OTP send request', { expectExists });
-
-      const isAccountExists = await AuthService.checkAccountExists(email);
-
-      // Anti-enumeration: return generic success if expectation not met
-      if ((expectExists && !isAccountExists) || (!expectExists && isAccountExists)) {
-        log.info('Anti-enumeration triggered', { accountExists: isAccountExists, expectExists });
-        return ApiResponse.delayedSuccess(res, successMessage);
+      const email = req.session?.email;
+      if (email) {
+        log.logUserAction('Signout initiated', email);
       }
 
-      await AuthService.sendOtp(email);
+      // Clear all cookies
+      const clearCookies = (cookies: Record<string, unknown>) => {
+        for (const key in cookies) {
+          if (key !== '_csrf' && Object.hasOwnProperty.call(cookies, key)) {
+            res.clearCookie(key);
+          }
+        }
+      };
 
-      log.logUserAction('OTP sent successfully', email);
-      return ApiResponse.success(res, successMessage);
+      clearCookies(req.cookies || {});
+      clearCookies(req.signedCookies || {});
+
+      // Destroy session
+      req.session.destroy((error?: Error) => {
+        if (error) {
+          log.error('Session destruction failed during signout', error);
+          return next(createErr.InternalServerError('Signout failed'));
+        }
+
+        if (email) {
+          log.logUserAction('Signout completed successfully', email);
+        }
+        return ApiResponse.success(res, 'Signed out successfully');
+      });
     } catch (error: unknown) {
-      log.error('Unexpected error in processSendOtp', error);
+      log.error('Signout error', error);
       return next(error);
     }
   }
+
+  // ==========================================
+  // PRIVATE HELPER METHODS
+  // ==========================================
 
   /**
    * Verify token payload and purpose (register | reset)

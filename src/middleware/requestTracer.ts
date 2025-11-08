@@ -2,12 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import { logger } from '../utils';
 
-declare module 'express-serve-static-core' {
-  interface Request {
-    requestId: string;
-  }
-}
-
 export const requestTracer = (req: Request, res: Response, next: NextFunction): void => {
   const requestId = randomUUID();
   const startTime = Date.now();

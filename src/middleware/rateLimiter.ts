@@ -4,6 +4,11 @@ import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { redisService } from '../services/redis';
 import { getClientIP, LoggerWrapper } from '../utils';
 
+const ERROR_MESSAGES = {
+  EMAIL_REQUIRED: 'Email is required',
+  TOO_MANY_REQUESTS: '',
+} as const;
+
 const rateLimiter = new RateLimiterRedis({
   storeClient: redisService.getClient(),
   keyPrefix: 'allRequests',
@@ -76,10 +81,10 @@ export const signinRateLimitMiddleware = (
   res: Response,
   next: NextFunction,
 ): void => {
-  return next();
+  // return next();
   const { email } = req.body;
   if (!email || typeof email !== 'string') {
-    return next(createErr.BadRequest('Email required'));
+    return next(createErr.BadRequest(ERROR_MESSAGES.EMAIL_REQUIRED));
   }
 
   const myIP = getClientIP(req);
@@ -90,7 +95,7 @@ export const signinRateLimitMiddleware = (
     .catch(() => {
       const logger = new LoggerWrapper(req);
       logger.warn('Signin rate limit exceeded', { email, ip: myIP });
-      next(createErr.TooManyRequests('Too many signin attempts'));
+      next(createErr.TooManyRequests('Too many signin attempts. Please try again after few mins.'));
     });
 };
 
@@ -99,10 +104,10 @@ export const otpMailRateLimitMiddleware = (
   res: Response,
   next: NextFunction,
 ): void => {
-  return next();
+  // return next();
   const { email } = req.body;
   if (!email || typeof email !== 'string') {
-    return next(createErr.BadRequest('Email required'));
+    return next(createErr.BadRequest(ERROR_MESSAGES.EMAIL_REQUIRED));
   }
 
   const myIP = getClientIP(req);
@@ -113,7 +118,7 @@ export const otpMailRateLimitMiddleware = (
     .catch(() => {
       const logger = new LoggerWrapper(req);
       logger.warn('OTP mail rate limit exceeded', { email, ip: myIP });
-      next(createErr.TooManyRequests('Too many OTP requests'));
+      next(createErr.TooManyRequests('Too many OTP requests. Please try again after few mins.'));
     });
 };
 
@@ -125,7 +130,7 @@ export const otpVerifyRateLimitMiddleware = (
   // return next();
   const { email } = req.body;
   if (!email || typeof email !== 'string') {
-    return next(createErr.BadRequest('Email required'));
+    return next(createErr.BadRequest(ERROR_MESSAGES.EMAIL_REQUIRED));
   }
 
   const myIP = getClientIP(req);
@@ -136,7 +141,11 @@ export const otpVerifyRateLimitMiddleware = (
     .catch(() => {
       const logger = new LoggerWrapper(req);
       logger.warn('OTP verify rate limit exceeded', { email, ip: myIP });
-      next(createErr.TooManyRequests('Too many OTP verification attempts'));
+      next(
+        createErr.TooManyRequests(
+          'Too many OTP verification attempts. Please try again after few mins.',
+        ),
+      );
     });
 };
 // TODO:delete rate limiting after success

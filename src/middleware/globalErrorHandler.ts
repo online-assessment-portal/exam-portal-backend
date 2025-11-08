@@ -15,9 +15,6 @@ const globalErrorHandler = (err: AppError, req: Request, res: Response, _next: N
   if (err.isJoi) {
     status = 422;
     message = err.message; // Joi messages are safe to expose
-  } else if (err.message === 'invalid csrf token') {
-    message = 'Security Token mis-match. Please refresh the page.';
-    status = 403;
   } else if (err.name === 'MongoError' || err.name === 'MongooseError') {
     message = 'Service temporarily unavailable. Please try again later.';
     status = 503;

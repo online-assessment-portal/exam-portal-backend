@@ -7,11 +7,6 @@ import { credentialsMdl } from '../../../helpers/schemaColl';
 const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12');
 
 export class AuthService {
-  static async checkAccountExists(email: string): Promise<boolean> {
-    const account = await credentialsMdl.findOne({ email });
-    return !!account;
-  }
-
   static async sendOtp(email: string): Promise<void> {
     await otpService.sendOtp(email);
   }
@@ -44,10 +39,16 @@ export class AuthService {
     return await credentialsMdl.findOneAndUpdate({ email }, { password: hashedPassword });
   }
 
-  static async findUser(uname: string) {
-    return await credentialsMdl.findOne({
-      $or: [{ uname }, { email: uname }],
+  static async findUserByEmail(email: string): Promise<boolean> {
+    const account = await credentialsMdl.findOne({ email });
+    return account;
+  }
+
+  static async findUser(identifier: string) {
+    const account = await credentialsMdl.findOne({
+      $or: [{ uname: identifier }, { email: identifier }],
     });
+    return account;
   }
 
   static async comparePassword(password: string, hash: string): Promise<boolean> {

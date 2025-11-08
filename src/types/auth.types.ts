@@ -1,5 +1,5 @@
 export interface SendOtpRequest {
-  email: string;
+  email: string; // Can be email or username
 }
 
 export interface VerifyOtpRequest {
@@ -20,11 +20,13 @@ export interface SigninRequest {
 export interface ApiResponse {
   success: boolean;
   message?: string;
+  data?: {
+    verifyToken: string;
+  };
   error?: {
     code: string;
     message: string;
   };
-  verifyToken?: string;
 }
 
 export interface TokenPayload {
