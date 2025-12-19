@@ -1,8 +1,8 @@
 import * as bcrypt from 'bcrypt';
-import { jwtService } from '../jwt';
-import { otpService } from '../otp';
+import { jwtService } from './jwt';
+import { otpService } from './otp';
 
-import { credentialsMdl } from '../../../helpers/schemaColl';
+import { credentialsMdl } from '../../helpers/schemaColl';
 
 const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12');
 
@@ -39,7 +39,7 @@ export class AuthService {
     return await credentialsMdl.findOneAndUpdate({ email }, { password: hashedPassword });
   }
 
-  static async findUserByEmail(email: string): Promise<boolean> {
+  static async findUserByEmail(email: string) {
     const account = await credentialsMdl.findOne({ email });
     return account;
   }

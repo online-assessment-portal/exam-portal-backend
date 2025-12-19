@@ -15,4 +15,6 @@ const OTP_CONFIG: {
   RATE_LIMIT_WINDOW: 900, // Rate limit window in seconds (15 minutes)
 } as const;
 
-export { appEnv, isDev, isProd, OTP_CONFIG };
+const DEFAULT_PROFILE_IMAGE = 'https://i.ibb.co/QpJYCQ7/UL8Ijh0w.png';
+
+export { appEnv, isDev, isProd, OTP_CONFIG, DEFAULT_PROFILE_IMAGE };

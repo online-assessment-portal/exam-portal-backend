@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import createErr from 'http-errors';
-import { AuthService } from '../services/auth/auth.service';
+import { AuthService } from '../services/auth.service';
 
-import { processSignIn } from '../../helpers/common';
+import { isUserLogged, processSignIn } from '../../helpers/common';
 import {
   ApiResponse as ApiResponseType,
   CompleteRequest,
@@ -315,6 +315,13 @@ export class AuthController {
   ): Promise<void> {
     const log = new LoggerWrapper(req);
     try {
+      const availableUserInfo = isUserLogged(req, 1);
+      if (availableUserInfo) {
+        return ApiResponse.success(res, SUCCESS_MESSAGES.SIGNIN_SUCCESS, {
+          userInfo: availableUserInfo,
+        });
+      }
+
       const { email: identifier, password } = await AuthValidation.signin.validateAsync(req.body);
       log.logUserAction('Signin attempt', identifier);
 
@@ -338,7 +345,7 @@ export class AuthController {
         return next(createErr.Unauthorized(ERROR_MESSAGES.INVALID_CREDENTIALS));
       }
 
-      const userInfo = processSignIn(
+      const userInfo = await processSignIn(
         req,
         res,
         foundUser.email,
@@ -355,9 +362,32 @@ export class AuthController {
       }
 
       log.logUserAction('Signin successful', foundUser.email);
-      return ApiResponse.success(res, SUCCESS_MESSAGES.SIGNIN_SUCCESS);
+      return ApiResponse.success(res, SUCCESS_MESSAGES.SIGNIN_SUCCESS, { userInfo });
     } catch (error: unknown) {
       log.error('Signin error', error);
+      return next(error);
+    }
+  }
+
+  // ==========================================
+  // USER INFO FLOW
+  // ==========================================
+
+  /**
+   * Get current user info
+   */
+  static async me(req: Request, res: Response<ApiResponseType>, next: NextFunction): Promise<void> {
+    const log = new LoggerWrapper(req);
+    try {
+      const userInfo = isUserLogged(req, 1);
+      if (!userInfo) {
+        return next(createErr.Unauthorized('Authentication required'));
+      }
+
+      log.logUserAction('User info retrieved', userInfo.email);
+      return ApiResponse.success(res, 'User info retrieved successfully', { userInfo });
+    } catch (error: unknown) {
+      log.error('User info retrieval error', error);
       return next(error);
     }
   }

@@ -16,7 +16,7 @@ const emailSchema = Joi.string()
     'any.required': 'Email is mandatory.',
   });
 
-const usernameSchema = Joi.string().min(3).max(60).trim().required().messages({
+export const usernameSchema = Joi.string().min(3).max(60).trim().required().messages({
   'string.empty': 'Username is required.',
   'string.min': 'Username must be at least 3 characters long.',
   'string.max': 'Username cannot exceed 60 characters.',

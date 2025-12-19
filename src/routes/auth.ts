@@ -1,5 +1,6 @@
 import express from 'express';
 import { AuthController } from '../controllers/auth.controller';
+import { requireUser } from '../middleware/auth';
 import {
   otpMailRateLimitMiddleware,
   otpVerifyRateLimitMiddleware,
@@ -23,5 +24,8 @@ router.post('/signin', signinRateLimitMiddleware, AuthController.signin);
 
 // Signout
 router.post('/signout', AuthController.signout);
+
+// User Info
+router.get('/me', requireUser, AuthController.me);
 
 export default router;
