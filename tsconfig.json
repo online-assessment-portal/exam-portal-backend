@@ -48,6 +48,6 @@
     "checkJs": false,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "*.js"],
+  "include": ["src/**/*", "*.js", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }
