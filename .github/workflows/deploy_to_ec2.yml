@@ -23,9 +23,6 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      - name: Copy index.html to dist
-        run: cp index.html dist/
-
       - name: Verify build output
         run: ls -la dist/
 
@@ -47,7 +44,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /var/www/exam-portal-backend
-            cp /var/www/exam-portal-backend/.env dist/
+            cp /var/www/.env dist/
             sudo rm -rf node_modules
             npm install --production
             pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
