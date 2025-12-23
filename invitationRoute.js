@@ -95,12 +95,12 @@ invRouter.post('/setupAccount', async (req, res, next) => {
   }
 });
 async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
-  const link = `https://shredtest.coderadiant.com/invite/myAuth?passcode=${reqBody.passcode}&myAuthHash=${uniqueId}&email=${to}`;
+  const link = `https://shredtest.scriptbliss.com/invite/myAuth?passcode=${reqBody.passcode}&myAuthHash=${uniqueId}&email=${to}`;
   mailBody = mailBody.replace(/\(\(=CandidateEmail=\)\)/g, to);
   mailBody = mailBody.replace(/\(\(=CandidateLink=\)\)/g, link);
   // gm - Gmail , ms - AWS SES
   const mailServer = reqBody.token ? 'gm' : 'ms';
-  const unsubLink = `https://shredtest.coderadiant.com/invite/unsub?passcode=${reqBody.passcode}&myAuthHash=${uniqueId}&email=${to}&sender=${reqBody.from}&type=${mailServer}`;
+  const unsubLink = `https://shredtest.scriptbliss.com/invite/unsub?passcode=${reqBody.passcode}&myAuthHash=${uniqueId}&email=${to}&sender=${reqBody.from}&type=${mailServer}`;
   mailBody = mailBody.replace(/\(\(=UnsubLink=\)\)/g, unsubLink);
   //
   const mailObject = {
@@ -116,7 +116,7 @@ async function prepareMail(transporter, mailBody, reqBody, to, uniqueId) {
       },
     },
   };
-  if (mailServer === 'ms') mailObject.replyTo = 'contact@shredtest.coderadiant.com';
+  if (mailServer === 'ms') mailObject.replyTo = 'contact@shredtest.scriptbliss.com';
   //
   const retObj = {
     email: to,

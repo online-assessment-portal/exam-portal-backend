@@ -109,9 +109,9 @@ let list = [],
   body1 = '',
   body2 = '',
   mailObject = {
-    from: '"CEO, Shred Test" <ceo@shredtest.coderadiant.com>',
+    from: '"CEO, Shred Test" <ceo@shredtest.scriptbliss.com>',
     subject: 'Free Online Examination Portal',
-    replyTo: '"Support" <support@shredtest.coderadiant.com>',
+    replyTo: '"Support" <support@shredtest.scriptbliss.com>',
     // to: "", - set at prepare mail
     // html: "", - set at prepare mail
     text: 'Your browser or app does not support this mail. Open it in updated browser / App',
