@@ -10,11 +10,6 @@ module.exports = {
       increment_var: 'PORT',
       env: {
         // Environment variables for default environment
-        NODE_ENV: 'development',
-        PORT: 3000,
-      },
-      env_production: {
-        // Environment variables for production
         NODE_ENV: 'production',
         PORT: 8080,
       },
