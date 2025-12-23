@@ -81,7 +81,7 @@ let list = [],
   mailObject = {
     from: '', // - prepared at main function
     subject: 'WordPress Developer Required : Small Task',
-    replyTo: '"Support" <support@shredtest.coderadiant.com>',
+    replyTo: '"Support" <support@shredtest.scriptbliss.com>',
     to: '', // - set at prepare mail
     html: '', // - set at prepare mail
     text: 'Your browser or app does not support this mail. Open it in updated browser / App',
@@ -114,7 +114,7 @@ async function main(param) {
   if (!htmlBody) return 'Empty Body';
   else if (!list.length) return 'Mailing List is Empty';
   else {
-    mailObject.from = `"${param.frm}" <${param.frmMail}@shredtest.coderadiant.com>`;
+    mailObject.from = `"${param.frm}" <${param.frmMail}@shredtest.scriptbliss.com>`;
     regulateQueue(list);
     // console.log(list.length);
     return 'Process Initiated';

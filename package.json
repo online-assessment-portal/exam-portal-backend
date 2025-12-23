@@ -7,10 +7,12 @@
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
-    "start": "tsx watch ./examServer.js",
-    "dev": "nodemon examServer.js",
+    "start": "node dist/examServer.js",
+    "start:prod": "NODE_ENV=production node dist/examServer.js",
+    "dev": "tsx watch ./examServer.js",
+    "dev:nodemon": "nodemon examServer.js",
     "build": "tsc -p tsconfig.json",
-    "start:nodemon:prod": "NODE_ENV-production nodemon examServer.js",
+    "build:prod": "yarn run build && yarn run start:prod",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

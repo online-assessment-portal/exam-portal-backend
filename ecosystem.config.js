@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'examServer_PM2',
-      script: 'examServer.js',
+      script: 'dist/examServer.js',
       watch: false,
       instances: 0,
       exec_mode: 'cluster',

@@ -70,7 +70,7 @@ mailRouter.get('/:action/:email/:mailUID', async (req, res) => {
                 return res.status(500).send(msg);
               } else
                 res.send(
-                  `<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br> <br><a href="https://shredtest.coderadiant.com/email/resub/${param.email}/${param.mailUID}">Click Here</a> to re-subscribe<br><br>else Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on our HomePage.<br> </h1> </center>`,
+                  `<center><h1 style="color: green;font-family: monospace;">Unsubscription Successful.<br> <br><a href="https://shredtest.scriptbliss.com/email/resub/${param.email}/${param.mailUID}">Click Here</a> to re-subscribe<br><br>else Please give us some time to process this request and inform the Sender.<br>If you still get mails from this address, please register a complaint using our Contact Us form available on our HomePage.<br> </h1> </center>`,
                 );
             });
           else if (param.action === 'resub')

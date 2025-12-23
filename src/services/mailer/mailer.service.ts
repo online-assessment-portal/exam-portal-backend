@@ -85,8 +85,8 @@ class MailerService {
   private async sendMail(mailOptions: MailOptions): Promise<MailResult> {
     try {
       const info = await this.transporter.sendMail({
-        from: mailOptions.from || '"Shred Test" <support@shredtest.coderadiant.com>',
-        replyTo: mailOptions.replyTo || 'contact@shredtest.coderadiant.com',
+        from: mailOptions.from || '"Shred Test" <support@shredtest.scriptbliss.com>',
+        replyTo: mailOptions.replyTo || 'contact@shredtest.scriptbliss.com',
         ...mailOptions,
       });
       if (info.accepted.length) {
@@ -166,11 +166,11 @@ class MailerService {
     switch (activityType) {
       case -1:
         activityMessage =
-          'Sign In to our website <a href="https://shredtest.coderadiant.com/" target="_blank">shredtest.coderadiant.com</a>';
+          'Sign In to our website <a href="https://shredtest.scriptbliss.com/" target="_blank">shredtest.scriptbliss.com</a>';
         break;
       case -2:
         activityMessage =
-          'OTP Verification during SignUp on our website <a href="https://shredtest.coderadiant.com/" target="_blank">shredtest.coderadiant.com</a>';
+          'OTP Verification during SignUp on our website <a href="https://shredtest.scriptbliss.com/" target="_blank">shredtest.scriptbliss.com</a>';
         break;
       case -3:
         activityMessage = 'OTP Verification during Password Reset';
@@ -180,7 +180,7 @@ class MailerService {
         break;
       case -5:
         activityMessage =
-          'SignUp on our website <a href="https://shredtest.coderadiant.com/" target="_blank">shredtest.coderadiant.com</a>';
+          'SignUp on our website <a href="https://shredtest.scriptbliss.com/" target="_blank">shredtest.scriptbliss.com</a>';
         break;
       default:
         activityMessage = 'Improper Actions';
@@ -204,8 +204,8 @@ class MailerService {
     const templateName = isGSignIn ? 'gsignup' : 'invSignUp';
     const subject = isGSignIn ? 'Google SignUp Success' : 'Verified Registration';
     const text = isGSignIn
-      ? 'Google SignUp - shredtest.coderadiant.com'
-      : 'Account Registered - shredtest.coderadiant.com';
+      ? 'Google SignUp - shredtest.scriptbliss.com'
+      : 'Account Registered - shredtest.scriptbliss.com';
 
     return this.sendTransactional(to, subject, templateName, { password }, text);
   }
@@ -256,14 +256,14 @@ class MailerService {
 
     emails.forEach((email) => {
       this.addToQueue({
-        from: `"${fromName}" <${fromEmail}@shredtest.coderadiant.com>`,
+        from: `"${fromName}" <${fromEmail}@shredtest.scriptbliss.com>`,
         to: email,
         subject,
         html,
         text,
         list: {
           unsubscribe: {
-            url: `https://shredtest.coderadiant.com/email/unsub/${email}/${data.mailUID}`,
+            url: `https://shredtest.scriptbliss.com/email/unsub/${email}/${data.mailUID}`,
             comment: 'unsubscribing',
           },
         },
