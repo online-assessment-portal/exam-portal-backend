@@ -32,5 +32,6 @@ jobs:
             cd /var/www/exam-portal-backend
             git pull origin main
             yarn install --production
+            yarn build
             sudo pm2 restart all
             # pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
