@@ -84,8 +84,8 @@ async function processSignIn(req, res, email, uname, name, img, isWhat = false) 
   });
 }
 //
-function isUserLogged(req, toReturn = false) {
-  if (req.session.loggedIn) {
+function isUserLogged(req, toReturn) {
+  if (req.session?.loggedIn) {
     const cookie = req.cookies;
     if (cookie) {
       if (toReturn === 1) {
