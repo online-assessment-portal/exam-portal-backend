@@ -18,7 +18,13 @@ if (isDev) {
   app.use(morgan('dev'));
 
   const cors = require('cors');
-  app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+  app.use(
+    cors({
+      origin: true,
+      // origin: 'http://localhost:5173',
+      credentials: true,
+    }),
+  );
 }
 
 const helmet = require('helmet');
@@ -141,6 +147,12 @@ app.use('/e', extraTask);
 const authRouter = require('./src/routes/auth').default;
 app.use('/auth', authRouter);
 
+const profileRouter = require('./src/routes/profile').default;
+app.use('/profile', profileRouter);
+
+const guestRouter = require('./src/routes/guest').default;
+app.use('/guest', guestRouter);
+
 const googleSignIn = require('./googleSignIn');
 app.use('/gsign', googleSignIn);
 
@@ -210,17 +222,18 @@ rm -rf ./../exam-portal-backend/public/*
 mv build/* ./../exam-portal-backend/public
  */
 // mv ./public/index.html ./
-const [indexHtmlPre, indexHtmlPost] = (() => {
-  try {
-    const html = fs.readFileSync('./index.html', 'utf8');
-    const preHtmlEndIndex = html.indexOf('e">') + 3;
-    const pre = html.slice(0, preHtmlEndIndex);
-    return [pre, '</pre></body></html>'];
-  } catch (err) {
-    console.error('Error reading file:', err);
-    throw new Error('Error reading index.html');
-  }
-})();
+const [indexHtmlPre, indexHtmlPost] = ['', ''];
+// const [indexHtmlPre, indexHtmlPost] = (() => {
+//   try {
+//     const html = fs.readFileSync('./index.html', 'utf8');
+//     const preHtmlEndIndex = html.indexOf('e">') + 3;
+//     const pre = html.slice(0, preHtmlEndIndex);
+//     return [pre, '</pre></body></html>'];
+//   } catch (err) {
+//     console.error('Error reading file:', err);
+//     throw new Error('Error reading index.html');
+//   }
+// })();
 
 app.get('/test', (req, res) => {
   res.json({ message: 'Server is operational' });
@@ -268,7 +281,8 @@ process.env.TZ = 'Asia/Kolkata';
 const socketConnectionParamObj = isDev
   ? {
       cors: {
-        origin: 'http://localhost:5173',
+        // origin: 'http://localhost:5173',
+        origin: true,
         methods: ['GET', 'POST'],
       },
     }
