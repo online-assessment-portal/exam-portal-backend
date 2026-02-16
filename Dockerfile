@@ -2,16 +2,23 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
-RUN npm ci --only=production
+# Enable Corepack for Yarn
+RUN corepack enable
 
-# Copy source and build
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Install all dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy source code
 COPY . .
-RUN npm install typescript @types/node && npm run build
 
-# Cleanup
-RUN npm prune --production
+# Build TypeScript
+RUN yarn build
+
+# Remove dev dependencies
+RUN yarn install --production --frozen-lockfile
 
 # Expose port
 EXPOSE 8080
