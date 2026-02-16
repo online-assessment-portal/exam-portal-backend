@@ -66,11 +66,14 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SESSION_SECRET=${{ secrets.SESSION_SECRET }}
             COOKIE_SECRET=${{ secrets.COOKIE_SECRET }}
+            AWS_SES_HOST=${{ secrets.AWS_SES_HOST }}
+            AWS_SES_UID=${{ secrets.AWS_SES_UID }}
+            AWS_SES_PSWD=${{ secrets.AWS_SES_PSWD }}
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             EOF
 
             echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-            
+
             sudo docker compose -f docker-compose.prod.yml pull
             sudo docker compose -f docker-compose.prod.yml up -d --wait --timeout 60
 
