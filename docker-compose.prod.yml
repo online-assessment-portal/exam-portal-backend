@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  backend:
+    image: ${IMAGE_NAME}
+    container_name: exam-portal-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      REDIS_HOST: redis
+      DB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/exam_db?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+    depends_on:
+      - redis
+      - mongo
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:7
+    container_name: exam-portal-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: exam_db
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: exam-portal-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+volumes:
+  redis-data:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
