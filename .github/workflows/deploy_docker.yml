@@ -27,12 +27,28 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.IMAGE_NAME }}
+            ${{ secrets.DOCKER_USERNAME }}/exam-portal-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}
+          cache-to: type=inline
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "~/exam-portal-backend/"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -40,9 +56,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /var/www/exam-portal-backend
+            cd ~/exam-portal-backend
 
-            # Create .env for docker-compose
             cat > .env << EOF
             IMAGE_NAME=${{ env.IMAGE_NAME }}
             MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
@@ -53,18 +68,14 @@ jobs:
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             EOF
 
-            # Pull latest images
-            docker-compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --wait --timeout 60
 
-            # Restart services
-            docker-compose -f docker-compose.prod.yml up -d
-
-            # Wait and verify
-            sleep 5
-            if docker ps | grep -q ${{ env.CONTAINER_NAME }}; then
-              echo "✅ Deployment successful"
-              docker image prune -f
-            else
-              echo "❌ Deployment failed"
+            if ! docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+              echo "Deployment failed"
+              docker compose -f docker-compose.prod.yml logs --tail=50
               exit 1
             fi
+
+            docker image prune -f
+            echo "Deployment successful"
