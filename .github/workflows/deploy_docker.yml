@@ -56,6 +56,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            mkdir -p ~/exam-portal-backend
             cd ~/exam-portal-backend
 
             cat > .env << EOF
@@ -68,14 +69,16 @@ jobs:
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             EOF
 
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --wait --timeout 60
+            echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            
+            sudo docker compose -f docker-compose.prod.yml pull
+            sudo docker compose -f docker-compose.prod.yml up -d --wait --timeout 60
 
-            if ! docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+            if ! sudo docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
               echo "Deployment failed"
-              docker compose -f docker-compose.prod.yml logs --tail=50
+              sudo docker compose -f docker-compose.prod.yml logs --tail=50
               exit 1
             fi
 
-            docker image prune -f
+            sudo docker image prune -f
             echo "Deployment successful"
