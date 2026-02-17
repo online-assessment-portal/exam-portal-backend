@@ -7,7 +7,6 @@ on:
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/exam-portal-backend:latest
-  CONTAINER_NAME: exam-portal-backend
 
 jobs:
   build-and-push:

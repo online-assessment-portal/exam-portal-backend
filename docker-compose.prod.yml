@@ -5,23 +5,17 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
       NODE_ENV: production
       PORT: 3000
       REDIS_HOST: redis
       DB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/exam_db?authSource=admin
-      JWT_SECRET: ${JWT_SECRET}
-      SESSION_SECRET: ${SESSION_SECRET}
-      COOKIE_SECRET: ${COOKIE_SECRET}
-      AWS_SES_HOST: ${AWS_SES_HOST}
-      AWS_SES_UID: ${AWS_SES_UID}
-      AWS_SES_PSWD: ${AWS_SES_PSWD}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
     depends_on:
       - redis
       - mongo
     networks:
-      - app-network
+      - shredtest-network
 
   mongo:
     image: mongo:7
@@ -36,7 +30,7 @@ services:
     volumes:
       - mongo-data:/data/db
     networks:
-      - app-network
+      - shredtest-network
 
   redis:
     image: redis:7-alpine
@@ -47,12 +41,12 @@ services:
     volumes:
       - redis-data:/data
     networks:
-      - app-network
+      - shredtest-network
 
 volumes:
   redis-data:
   mongo-data:
 
 networks:
-  app-network:
+  shredtest-network:
     driver: bridge
