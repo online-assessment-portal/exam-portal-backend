@@ -37,7 +37,7 @@ interface MailResult {
 class MailerService {
   private provider: MailProvider;
   private transporter: Transporter;
-  private templates: Record<string, HandlebarsTemplateDelegate> = {};
+  private static templates: Record<string, HandlebarsTemplateDelegate> = {};
   private queue: MailOptions[] = [];
   private isProcessingQueue = false;
 
@@ -72,10 +72,10 @@ class MailerService {
     }
   }
 
-  private async loadTemplate(templateName: string, templatePath: string): Promise<void> {
+  private static async loadTemplate(templateName: string, templatePath: string): Promise<void> {
     try {
       const templateContent = await fs.readFile(templatePath, 'utf8');
-      this.templates[templateName] = handlebars.compile(templateContent);
+      MailerService.templates[templateName] = handlebars.compile(templateContent);
     } catch (error) {
       logger.error('Template loading failed', { templateName, error });
       throw error;
@@ -122,14 +122,14 @@ class MailerService {
     textFallback = '',
   ): Promise<MailResult> {
     logger.info('Sending transactional email', { to, subject, templateName });
-    if (!this.templates[templateName]) {
-      await this.loadTemplate(
+    if (!MailerService.templates[templateName]) {
+      await MailerService.loadTemplate(
         templateName,
         path.join(__dirname, './htmlMailSource', `${templateName}.html`),
       );
     }
 
-    const template = this.templates[templateName];
+    const template = MailerService.templates[templateName];
     if (!template) {
       logger.error('Template not found after loading', { templateName });
       throw new Error(`Template ${templateName} not found`);
@@ -239,14 +239,14 @@ class MailerService {
     fromName: string,
     fromEmail: string,
   ): Promise<void> {
-    if (!this.templates[templateName]) {
-      await this.loadTemplate(
+    if (!MailerService.templates[templateName]) {
+      await MailerService.loadTemplate(
         templateName,
         path.join(__dirname, '../../emailService', `${templateName}.txt`),
       );
     }
 
-    const template = this.templates[templateName];
+    const template = MailerService.templates[templateName];
     if (!template) {
       logger.error('Bulk email template not found after loading', { templateName });
       throw new Error(`Template ${templateName} not found`);
