@@ -5,9 +5,9 @@ const createErr = require('http-errors');
 //
 const { storeErr, isAdminLogged } = require('./helpers/common');
 //
-const { contactV, passcodeV } = require('./helpers/joiSchema');
+const { passcodeV } = require('./helpers/joiSchema');
 //
-const { qBankMdl, responsesMdl, joinModel, contactMdl } = require('./helpers/schemaColl');
+const { qBankMdl, responsesMdl, joinModel } = require('./helpers/schemaColl');
 // ADMIN MONITORING
 function getAllCand(passcode) {
   return new Promise((res, rej) => {
@@ -38,28 +38,6 @@ function getLiveCand(passcode) {
       .lean();
   });
 }
-router.post('/contact', async (req, res, next) => {
-  try {
-    const body = await contactV.validateAsync(req.body);
-    contactMdl.create(body, (err, response) => {
-      if (err || !response) {
-        if (err) storeErr(req, err);
-        return next(
-          createErr.InternalServerError(
-            'Something went wrong: Sorry for the inconvenience caused.<br>Please drop a message on our WhatsApp 8529493017.',
-          ),
-        );
-      } else if (response)
-        res.send({
-          msg: 'Success',
-        });
-    });
-  } catch (error) {
-    if (error.isJoi) error.status = 422;
-    else storeErr(req, error);
-    next(error);
-  }
-});
 //
 router.post('/enquire/', async (req, res, next) => {
   try {

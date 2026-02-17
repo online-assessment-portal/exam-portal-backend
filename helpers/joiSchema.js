@@ -619,26 +619,6 @@ const feedbackV = Joi.object({
 // GENERAL SCHEMAS
 // ==========================================
 
-/**
- * Contact Validation Schema
- * For contact form submissions.
- */
-const contactV = Joi.object({
-  name: Joi.string().empty('').max(50).trim().messages({
-    'string.max': 'Name cannot exceed 50 characters.',
-  }),
-  mailId: Joi.string().empty('').max(100).lowercase().trim().messages({
-    'string.max': 'Email cannot exceed 100 characters.',
-  }),
-  mobNo: Joi.string().empty('').max(10).trim().messages({
-    'string.max': 'Mobile number cannot exceed 10 characters.',
-  }),
-  msg: Joi.string().empty('').max(500).trim().messages({
-    'string.max': 'Message cannot exceed 500 characters.',
-  }),
-  ...csrfTokenSchema,
-});
-
 // ==========================================
 // EMAIL SCHEMAS
 // ==========================================
@@ -686,7 +666,6 @@ module.exports = {
   feedbackV,
   //
   addAdminV,
-  contactV,
   //
   emailUnSubV,
 };

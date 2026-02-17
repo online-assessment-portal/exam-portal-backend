@@ -124,14 +124,6 @@ const feedbackSch = new Schema({
   feedback: { type: String, default: '' },
 });
 const feedbackMdl = model('feedback', feedbackSch);
-//
-const contactSch = new Schema({
-  name: { type: String, default: '' },
-  mailId: { type: String, default: '' },
-  mobNo: { type: String, default: '' },
-  msg: { type: String, default: '' },
-});
-const contactMdl = model('contactReq', contactSch);
 // Sent Mail record
 const sentMailSch = new Schema({
   email: { type: String, required: true },
@@ -166,7 +158,6 @@ module.exports = {
   responsesMdl,
   joinModel,
   feedbackMdl,
-  contactMdl,
   //
   sentMailMdl,
   emailUnSubMdl,

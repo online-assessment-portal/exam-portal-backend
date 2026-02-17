@@ -1,28 +1,64 @@
-version: "3.8"
+# Default compose file for local development
+# Use: docker-compose up
 
 services:
-  mongodb:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exam-portal-backend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      REDIS_HOST: redis
+      DB_URI: mongodb://admin:password@mongo:27017/exam_db?authSource=admin
+      JWT_SECRET: dev_jwt_secret
+      SESSION_SECRET: dev_session_secret
+      COOKIE_SECRET: dev_cookie_secret
+      ADMIN_EMAIL: admin@example.com
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
+      - /app/node_modules
+    depends_on:
+      - redis
+      - mongo
+    networks:
+      - app-network
+
+  mongo:
     image: mongo:7
-    container_name: exam-portal-mongo
+    container_name: exam-portal-mongo-dev
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: exam_portal
+      MONGO_INITDB_DATABASE: exam_db
     volumes:
-      - mongo_data:/data/db
-    restart: unless-stopped
+      - mongo-data-dev:/data/db
+    networks:
+      - app-network
 
   redis:
     image: redis:7-alpine
-    container_name: exam-portal-redis
+    container_name: exam-portal-redis-dev
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-    restart: unless-stopped
+      - redis-data-dev:/data
+    networks:
+      - app-network
 
 volumes:
-  mongo_data:
-  redis_data:
+  redis-data-dev:
+  mongo-data-dev:
+
+networks:
+  app-network:
+    driver: bridge
