@@ -60,8 +60,9 @@ jobs:
 
             cat > .env << EOF
             IMAGE_NAME=${{ env.IMAGE_NAME }}
-            MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
-            MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+            DB_URI=${{ secrets.DB_URI }}
+            # MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
+            # MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SESSION_SECRET=${{ secrets.SESSION_SECRET }}
             COOKIE_SECRET=${{ secrets.COOKIE_SECRET }}

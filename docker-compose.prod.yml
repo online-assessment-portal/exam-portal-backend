@@ -10,27 +10,44 @@ services:
       NODE_ENV: production
       PORT: 3000
       REDIS_HOST: redis
-      DB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/exam_db?authSource=admin
+      # Local MongoDB (commented - using Atlas)
+      # DB_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/exam_db?authSource=admin
     depends_on:
       - redis
-      - mongo
+      # - mongo  # Commented - using Atlas
     networks:
       - shredtest-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+        reservations:
+          cpus: "0.25"
+          memory: 192M
 
-  mongo:
-    image: mongo:7
-    container_name: exam-portal-mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: exam_db
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - shredtest-network
+  # mongo:
+  #   image: mongo:7
+  #   container_name: exam-portal-mongo
+  #   restart: unless-stopped
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+  #     MONGO_INITDB_DATABASE: exam_db
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - shredtest-network
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '1.0'
+  #         memory: 1G
+  #       reservations:
+  #         cpus: '0.5'
+  #         memory: 512M
 
   redis:
     image: redis:7-alpine
@@ -42,6 +59,14 @@ services:
       - redis-data:/data
     networks:
       - shredtest-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
 
 volumes:
   redis-data:
