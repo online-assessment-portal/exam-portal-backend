@@ -1,5 +1,5 @@
 import { ContactModel } from '../models/guest.model';
-import MailerService from './mailer/mailer.service';
+import MailerService from './mailer.service';
 
 interface ContactFormData extends Record<string, unknown> {
   name: string;

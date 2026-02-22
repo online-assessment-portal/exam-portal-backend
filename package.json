@@ -10,7 +10,7 @@
     "start": "node dist/examServer.js",
     "dev": "tsx watch ./examServer.js",
     "dev:nodemon": "nodemon examServer.js",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && cp -r assets dist/",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

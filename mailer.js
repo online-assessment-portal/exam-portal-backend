@@ -1,4 +1,4 @@
-const MailerService = require('./src/services/mailer/mailer.service.js').default;
+const MailerService = require('./src/services/mailer.service.js').default;
 
 const mailerService = new MailerService(process.env.MAIL_PROVIDER || 'aws');
 

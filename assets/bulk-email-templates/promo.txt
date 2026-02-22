@@ -1,0 +1,1 @@
+{{{body1}}}<a href="https://shredtest.scriptbliss.com/email/unsub/{{email}}/{{mailUID}}" target="_blank" rel="noopener noreferrer" style="text-decoration: underline white;font-size: large;">unsubscribe</a>{{{body2}}}

@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import createErr from 'http-errors';
 import { redisService } from './redis';
-import MailerService from './mailer/mailer.service';
+import MailerService from './mailer.service';
 import { OTP_CONFIG } from '../config/constants';
 import { logger } from '../utils';
 

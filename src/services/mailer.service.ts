@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from 'nodemailer';
 import * as handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { logger } from '../../utils';
+import { logger } from '../utils';
 
 type MailProvider = 'aws' | 'gmail';
 
@@ -125,7 +125,7 @@ class MailerService {
     if (!MailerService.templates[templateName]) {
       await MailerService.loadTemplate(
         templateName,
-        path.join(__dirname, './htmlMailSource', `${templateName}.html`),
+        path.join(__dirname, '../../assets/email-templates', `${templateName}.html`),
       );
     }
 
@@ -153,7 +153,7 @@ class MailerService {
     let data;
     try {
       data = await fs.readFile(
-        path.join(__dirname, './htmlMailSource/suspiciousActivity.txt'),
+        path.join(__dirname, '../../assets/email-templates/suspiciousActivity.txt'),
         'utf8',
       );
     } catch (error: unknown) {
@@ -242,7 +242,7 @@ class MailerService {
     if (!MailerService.templates[templateName]) {
       await MailerService.loadTemplate(
         templateName,
-        path.join(__dirname, '../../emailService', `${templateName}.txt`),
+        path.join(__dirname, '../../assets/bulk-email-templates', `${templateName}.txt`),
       );
     }
 
