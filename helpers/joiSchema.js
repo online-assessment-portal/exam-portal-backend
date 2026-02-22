@@ -8,19 +8,6 @@ const Joi = require('joi');
 // COMMON SCHEMAS (Reusable Components)
 // ==========================================
 
-/**
- * CSRF Token Schema
- * Validates the CSRF token for security purposes.
- */
-const csrfTokenSchema = {
-  _csrf: Joi.string().min(10).max(100).trim().messages({
-    'string.empty': 'CSRF token is required for security.',
-    'string.min': 'CSRF token must be at least 10 characters.',
-    'string.max': 'CSRF token cannot exceed 100 characters.',
-    'any.required': 'CSRF token is mandatory.',
-  }),
-};
-
 const jwtTokenSchema = {
   token: Joi.string()
     .pattern(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/)
@@ -229,7 +216,6 @@ const profileV = Joi.object({
   sendCand: Joi.boolean().required().messages({
     'any.required': 'Send candidate preference is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -243,7 +229,6 @@ const profileV = Joi.object({
 const adminAuth = Joi.object({
   ...unamSchReq,
   ...pswdSch,
-  ...csrfTokenSchema,
 });
 
 /**
@@ -286,14 +271,13 @@ const qBankJoi = Joi.object({
   isUpdt: Joi.boolean().required().messages({
     'any.required': 'Update flag is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
  * Passcode Validation Schema
  * For passcode-only validation with CSRF token.
  */
-const passcodeV = Joi.object({ ...passcodeSch, ...csrfTokenSchema });
+const passcodeV = Joi.object({ ...passcodeSch });
 
 /**
  * Upload Results Validation Schema
@@ -329,7 +313,6 @@ const uploadResV = Joi.object({
     'string.max': 'Final score cannot exceed 50000 characters.',
     'any.required': 'Final score is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -341,7 +324,6 @@ const getResultStrV = Joi.object({
     'string.max': 'Mail list cannot exceed 50000 characters.',
     'any.required': 'Mail list is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -358,7 +340,6 @@ const uploadRankV = Joi.object({
     'string.max': 'Final rank cannot exceed 100000 characters.',
     'any.required': 'Final rank is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -370,7 +351,6 @@ const excelDnV = Joi.object({
     'string.max': 'HTML content cannot exceed 1000000 characters.',
     'any.required': 'HTML content is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -386,7 +366,6 @@ const showResV = Joi.object({
     'string.max': 'Result data cannot exceed 100000 characters.',
     'any.required': 'Result data is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -412,7 +391,6 @@ const addAdminV = Joi.object({
     'string.max': 'Image upload key cannot exceed 100 characters.',
     'any.required': 'Image upload key is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -459,7 +437,6 @@ const inviteMailV = Joi.object({
     'string.max': 'Queue cannot exceed 50000 characters.',
     'any.required': 'Queue is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -520,7 +497,6 @@ const invMailAcc = Joi.object({
     'string.max': 'Token cannot exceed 120 characters.',
     'any.required': 'Token is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 // ==========================================
@@ -537,7 +513,6 @@ const libSelV = Joi.object({
     'string.max': 'Library selection cannot exceed 1500 characters.',
     'any.required': 'Library selection is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -550,7 +525,6 @@ const qsnrV = Joi.object({
     'string.max': 'Response cannot exceed 1500 characters.',
     'any.required': 'Response is required.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -577,7 +551,6 @@ const submitTestV = Joi.object({
   }),
   vData: Joi.string().trim().optional(),
   sSize: Joi.string().trim().optional(),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -600,7 +573,6 @@ const compilerV = Joi.object({
   fordata: Joi.string().min(0).max(2000).trim().allow(null, '').messages({
     'string.max': 'Data cannot exceed 2000 characters.',
   }),
-  ...csrfTokenSchema,
 });
 
 /**
@@ -612,7 +584,6 @@ const feedbackV = Joi.object({
   feedback: Joi.string().max(1000).trim().optional().messages({
     'string.max': 'Feedback cannot exceed 1000 characters.',
   }),
-  ...csrfTokenSchema,
 });
 
 // ==========================================
