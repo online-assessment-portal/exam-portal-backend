@@ -70,7 +70,7 @@ services:
 
 volumes:
   redis-data:
-  mongo-data:
+  # mongo-data:
 
 networks:
   shredtest-network:

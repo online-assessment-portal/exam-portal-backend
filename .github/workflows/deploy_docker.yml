@@ -3,7 +3,7 @@ name: Deploy to EC2 via Docker
 on:
   push:
     branches:
-      - dev
+      - main
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/exam-portal-backend:latest
@@ -75,7 +75,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
             sudo docker compose -f docker-compose.prod.yml pull
-            sudo docker compose -f docker-compose.prod.yml up -d --wait --timeout 60
+            sudo docker compose -f docker-compose.prod.yml up -d --wait --timeout 60 --remove-orphans
 
             if ! sudo docker compose -f docker-compose.prod.yml ps | grep -q "Up"; then
               echo "Deployment failed"

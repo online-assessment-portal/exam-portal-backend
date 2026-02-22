@@ -136,7 +136,8 @@ function makeDateTimeReadable(recDate, type) {
   }
 }
 const { passcodeV, libSelV, qsnrV, submitTestV, feedbackV } = require('./helpers/joiSchema');
-candRouter.post('/examInfo/', async (req, res, next) => {
+const { ApiResponse } = require('./src/utils/response');
+candRouter.get('/examInfo/', async (req, res, next) => {
   try {
     const email = isUserLogged(req, 3);
     if (!email) {
@@ -147,7 +148,7 @@ candRouter.post('/examInfo/', async (req, res, next) => {
       );
     }
     //
-    const body = await passcodeV.validateAsync(req.body);
+    const body = await passcodeV.validateAsync(req.query);
     //
     qBankMdl
       .findOne({ passcode: body.passcode }, (err, test) => {
@@ -239,7 +240,12 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                   test = { ...cand, ...test };
                   test.Entry = 0;
                   if (test.questionnaire) test.questionnaire = true;
-                  res.send(processTest(test, startIn, endIn));
+                  const processTestResponse = processTest(test, startIn, endIn);
+                  ApiResponse.success(
+                    res,
+                    'Assessment-Info fetched successfully',
+                    processTestResponse,
+                  );
                 } else if (endIn < 0) {
                   const show = `Entry Closed at ${makeDateTimeReadable(
                     test.endTime,
@@ -276,7 +282,12 @@ candRouter.post('/examInfo/', async (req, res, next) => {
                           //
                           io.to(`${body.passcode}_admin`).emit('newRegistration', { email: email });
                           //
-                          res.send(processTest(test, startIn, endIn));
+                          const processTestResponse = processTest(test, startIn, endIn);
+                          ApiResponse.success(
+                            res,
+                            'Assessment-Info fetched successfully',
+                            processTestResponse,
+                          );
                         }
                       },
                     );
