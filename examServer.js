@@ -16,16 +16,16 @@ const httpServer = http.createServer(app);
 if (isDev) {
   const morgan = require('morgan');
   app.use(morgan('dev'));
-
-  const cors = require('cors');
-  app.use(
-    cors({
-      origin: true,
-      // origin: 'http://localhost:5173',
-      credentials: true,
-    }),
-  );
 }
+
+const cors = require('cors');
+const allowedOrigins = isDev ? true : (process.env.CORS_ORIGINS || '').split(',');
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 
 const helmet = require('helmet');
 app.use(
@@ -281,8 +281,7 @@ process.env.TZ = 'Asia/Kolkata';
 const socketConnectionParamObj = isDev
   ? {
       cors: {
-        // origin: 'http://localhost:5173',
-        origin: true,
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
       },
     }

@@ -70,6 +70,7 @@ jobs:
             AWS_SES_UID=${{ secrets.AWS_SES_UID }}
             AWS_SES_PSWD=${{ secrets.AWS_SES_PSWD }}
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             EOF
 
             echo ${{ secrets.DOCKER_PASSWORD }} | sudo docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
